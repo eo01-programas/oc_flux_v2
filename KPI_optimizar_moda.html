@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard Control de Produccion | KPI</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="css/pages/kpi-produccion.css">
+</head>
+<body class="p-2 text-sm text-gray-800 antialiased md:p-3">
+  <div class="mx-auto max-w-[98%]">
+    <div class="mb-3 flex flex-col items-center justify-between gap-2 md:flex-row">
+      <div>
+        <h1 class="text-xl font-bold leading-tight text-gray-900">Dashboard de Produccion Corte/Habilitado</h1>
+      </div>
+      <div class="flex flex-col items-stretch gap-2 md:flex-row md:items-center">
+        <a href="index.html" class="inline-flex items-center justify-center gap-2 rounded border border-slate-300 bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-700 shadow-sm transition hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-1">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4">
+            <path d="M15 18l-6-6 6-6"></path>
+            <path d="M21 12H9"></path>
+          </svg>
+          <span>Volver</span>
+        </a>
+        <div class="flex flex-wrap items-center gap-2 rounded border border-gray-200 bg-white px-2 py-1.5 shadow-sm">
+          <label for="dateFieldFilter" class="text-xs font-semibold text-gray-700">Fecha:</label>
+          <select id="dateFieldFilter" class="block rounded border border-gray-300 bg-gray-50 p-1 text-xs text-gray-900 focus:border-blue-500 focus:ring-blue-500">
+            <option value="fGir">F. Girado</option>
+            <option value="fCorte">FECHA CORTE</option>
+            <option value="fIngReal">F.ING.REAL</option>
+            <option value="fDesp" selected>F. DESPACHO</option>
+          </select>
+          <label id="monthFilterLabel" for="monthFilter" class="text-xs font-semibold text-gray-700">F. DESPACHO:</label>
+          <select id="monthFilter" class="block rounded border border-gray-300 bg-gray-50 p-1 text-xs text-gray-900 focus:border-blue-500 focus:ring-blue-500">
+            <option value="ALL">Todos los meses</option>
+          </select>
+          <button id="refreshButton" class="rounded border border-slate-300 bg-slate-50 px-2 py-1 text-[11px] font-semibold text-slate-700 transition hover:bg-slate-100">Recargar</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="mb-2 grid grid-cols-1 gap-2 md:grid-cols-3">
+      <div class="card kpi-card border-t-4 border-blue-500">
+        <div class="kpi-card-header flex items-start justify-between gap-2">
+          <div>
+            <h3 class="mb-0.5 text-xs font-bold uppercase tracking-wider text-gray-500">KPI 1: Entrega de tela</h3>
+            <p class="mb-1 text-[10px] text-gray-400">F. Despacho - F. Girado</p>
+          </div>
+          <div class="flex items-baseline gap-1 pt-0.5">
+            <span id="kpi1-value" class="text-2xl font-extrabold text-gray-900">--</span>
+            <span class="text-xs text-gray-500">dias</span>
+          </div>
+        </div>
+        <div class="kpi-card-main my-0.5 grid grid-cols-1 gap-1.5 sm:grid-cols-2 xl:grid-cols-3">
+          <div class="rounded border border-emerald-100 bg-emerald-50 px-2 py-1.5">
+            <p class="text-[10px] text-gray-500">Cortes Tela &ge;45d</p>
+            <div class="mt-0.5 whitespace-nowrap text-xs font-bold text-emerald-600">
+              <span id="kpi1-ge45-pct">--</span>
+              <span class="px-1 text-emerald-400">-</span>
+              <span id="kpi1-ge45">--</span>
+            </div>
+          </div>
+          <div class="rounded border border-cyan-100 bg-cyan-50 px-2 py-1.5">
+            <p class="text-[10px] text-gray-500">Cortes Tela &ge;30d y &lt;45d</p>
+            <div class="mt-0.5 whitespace-nowrap text-xs font-bold text-cyan-600">
+              <span id="kpi1-ge30lt45-pct">--</span>
+              <span class="px-1 text-cyan-400">-</span>
+              <span id="kpi1-ge30lt45">--</span>
+            </div>
+          </div>
+          <div class="rounded border border-amber-100 bg-amber-50 px-2 py-1.5">
+            <p class="text-[10px] text-gray-500">Cortes Tela &ge;20d y &lt;30d</p>
+            <div class="mt-0.5 whitespace-nowrap text-xs font-bold text-amber-600">
+              <span id="kpi1-ge20lt30-pct">--</span>
+              <span class="px-1 text-amber-400">-</span>
+              <span id="kpi1-ge20lt30">--</span>
+            </div>
+          </div>
+          <div class="rounded border border-orange-100 bg-orange-50 px-2 py-1.5">
+            <p class="text-[10px] text-gray-500">Cortes Tela &ge;10d y &lt;20d</p>
+            <div class="mt-0.5 whitespace-nowrap text-xs font-bold text-orange-600">
+              <span id="kpi1-ge10lt20-pct">--</span>
+              <span class="px-1 text-orange-400">-</span>
+              <span id="kpi1-ge10lt20">--</span>
+            </div>
+          </div>
+          <div class="rounded border border-slate-100 bg-slate-50 px-2 py-1.5">
+            <p class="text-[10px] text-gray-500">Cortes Tela &lt;10d</p>
+            <div class="mt-0.5 whitespace-nowrap text-xs font-bold text-slate-600">
+              <span id="kpi1-lt10-pct">--</span>
+              <span class="px-1 text-slate-400">-</span>
+              <span id="kpi1-lt10">--</span>
+            </div>
+          </div>
+        </div>
+        <div class="kpi-card-foot text-[10px] leading-4 text-gray-500">
+          <p>Mide cuantos dias antes del despacho fue girada la tela para cada corte.</p>
+        </div>
+      </div>
+
+      <div class="card kpi-card border-t-4 border-indigo-500">
+        <div class="kpi-card-header flex items-start justify-between gap-2">
+          <div>
+            <h3 class="mb-0.5 text-xs font-bold uppercase tracking-wider text-gray-500">KPI 2: Ciclo de Corte</h3>
+            <p class="mb-1 text-[10px] text-gray-400">F. Girado a ingreso costura real</p>
+          </div>
+          <div class="flex flex-col items-center gap-0.5 pt-0.5">
+            <button id="kpi2-detail-button" type="button" title="Detalle" aria-label="Detalle" class="flex h-9 w-9 items-center justify-center rounded-full border border-indigo-200 bg-indigo-50 text-indigo-600 shadow-sm transition hover:bg-indigo-100 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-offset-1">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4">
+                <path d="M4 19h16"></path>
+                <path d="M6 16l4-4 3 2 5-6"></path>
+                <circle cx="6" cy="16" r="1.2" fill="currentColor" stroke="none"></circle>
+                <circle cx="10" cy="12" r="1.2" fill="currentColor" stroke="none"></circle>
+                <circle cx="13" cy="14" r="1.2" fill="currentColor" stroke="none"></circle>
+                <circle cx="18" cy="8" r="1.2" fill="currentColor" stroke="none"></circle>
+              </svg>
+            </button>
+            <span class="text-[10px] font-semibold uppercase tracking-wide text-indigo-500">Detalle</span>
+          </div>
+        </div>
+        <div class="kpi-card-main my-0.5 grid grid-cols-1 gap-1.5 sm:grid-cols-2">
+          <div class="rounded border border-indigo-100 bg-indigo-50 px-2 py-1.5">
+            <p class="text-[10px] font-semibold text-gray-500">RUTA: ACABADA</p>
+            <div class="mt-1 grid gap-1">
+              <div class="flex items-baseline justify-between gap-2">
+                <span class="text-[10px] font-semibold text-indigo-700">Bordado</span>
+                <div class="flex items-baseline gap-0.5">
+                  <span id="kpi2-acabada-pieza" class="text-base font-bold text-indigo-600">--</span>
+                  <span class="text-[10px] text-indigo-700">dias</span>
+                </div>
+              </div>
+              <div class="flex items-baseline justify-between gap-2">
+                <span class="text-[10px] font-semibold text-sky-700">Sin bordado</span>
+                <div class="flex items-baseline gap-0.5">
+                  <span id="kpi2-acabada-otros" class="text-base font-bold text-sky-600">--</span>
+                  <span class="text-[10px] text-sky-700">dias</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="rounded border border-purple-100 bg-purple-50 px-2 py-1.5">
+            <p class="text-[10px] font-semibold text-gray-500">RUTA: LAVADA</p>
+            <div class="mt-1 grid gap-1">
+              <div class="flex items-baseline justify-between gap-2">
+                <span class="text-[10px] font-semibold text-violet-700">Bordado</span>
+                <div class="flex items-baseline gap-0.5">
+                  <span id="kpi2-lavada-pieza" class="text-base font-bold text-violet-600">--</span>
+                  <span class="text-[10px] text-violet-700">dias</span>
+                </div>
+              </div>
+              <div class="flex items-baseline justify-between gap-2">
+                <span class="text-[10px] font-semibold text-pink-700">Sin bordado</span>
+                <div class="flex items-baseline gap-0.5">
+                  <span id="kpi2-lavada-otros" class="text-base font-bold text-pink-600">--</span>
+                  <span class="text-[10px] text-pink-700">dias</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="kpi-card-foot text-[10px] leading-4 text-gray-500">
+          <p>Moda de #Dias entre F. Girado e ingreso real a costura. Menos dias, mas fluido es el avance desde corte hacia costura</p>
+        </div>
+      </div>
+
+      <div class="card kpi-card border-t-4 border-orange-500">
+        <div class="kpi-card-header flex items-start justify-between gap-2">
+          <div>
+            <h3 class="mb-0.5 text-xs font-bold uppercase tracking-wider text-gray-500">KPI 3: Adherencia Costura</h3>
+            <p class="mb-1 text-[10px] text-gray-400">Desviacion (real vs planeado)</p>
+          </div>
+          <div class="flex items-start gap-2">
+            <div class="flex flex-col items-center gap-0.5">
+              <button id="kpi3-detail-button" type="button" title="Detalle" aria-label="Detalle" class="flex h-9 w-9 items-center justify-center rounded-full border border-orange-200 bg-orange-50 text-orange-600 shadow-sm transition hover:bg-orange-100 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:ring-offset-1">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4">
+                  <path d="M4 19h16"></path>
+                  <path d="M6 16l4-4 3 2 5-6"></path>
+                  <circle cx="6" cy="16" r="1.2" fill="currentColor" stroke="none"></circle>
+                  <circle cx="10" cy="12" r="1.2" fill="currentColor" stroke="none"></circle>
+                  <circle cx="13" cy="14" r="1.2" fill="currentColor" stroke="none"></circle>
+                  <circle cx="18" cy="8" r="1.2" fill="currentColor" stroke="none"></circle>
+                </svg>
+              </button>
+              <span class="text-[10px] font-semibold uppercase tracking-wide text-orange-500">Detalle</span>
+            </div>
+            <div class="flex items-baseline gap-1 pt-0.5">
+              <span id="kpi3-value" class="text-2xl font-extrabold text-gray-900">--</span>
+              <span class="text-xs text-gray-500">dias prom.</span>
+            </div>
+          </div>
+        </div>
+        <div class="kpi-card-main my-0.5 grid grid-cols-2 gap-1.5 text-[11px] xl:grid-cols-4">
+          <div id="kpi3-early" class="rounded bg-blue-50 px-1.5 py-1 font-semibold text-blue-600">--</div>
+          <div id="kpi3-ontime" class="rounded bg-green-50 px-1.5 py-1 text-center font-semibold text-green-600">--</div>
+          <div id="kpi3-late" class="rounded bg-red-50 px-1.5 py-1 text-right font-semibold text-red-500">--</div>
+          <div id="kpi3-missing-plan" class="rounded bg-slate-100 px-1.5 py-1 text-center font-semibold text-slate-600">--</div>
+        </div>
+        <div class="kpi-card-foot text-[10px] leading-4 text-gray-500">
+          <p>Compara la fecha real de ingreso a costura contra la fecha planificada.</p>
+          <p>Un valor cercano a 0 es mejor; positivo indica atraso y negativo indica adelanto.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="mb-3 grid grid-cols-1 gap-3 lg:grid-cols-2">
+      <div class="card flex flex-col !p-2 border border-slate-200">
+        <h3 class="mb-2 px-2 text-sm font-bold text-gray-800">Entregas de Tela</h3>
+        <div id="entregas-tela-wrap" class="max-h-[15rem] w-full overflow-auto rounded-xl border border-slate-300 bg-white sm:max-h-[16rem] lg:max-h-[17rem]">
+          <table class="min-w-max border-collapse text-[11px] text-slate-700">
+            <thead id="entregas-tela-thead" class="bg-slate-100 text-[11px] uppercase tracking-wide text-slate-600"></thead>
+            <tbody id="entregas-tela-tbody" class="bg-white"></tbody>
+          </table>
+        </div>
+        <p id="entregas-tela-empty" class="mt-2 hidden px-2 text-[10px] font-medium text-amber-700">No hay datos suficientes para construir la tabla de Entregas de Tela.</p>
+      </div>
+      <div class="card flex flex-col !p-2">
+        <h3 class="mb-2 px-2 text-sm font-bold text-gray-800">Nube de Puntos: Anticipacion vs Desviacion</h3>
+        <div class="relative h-48 w-full sm:h-52 lg:h-56"><canvas id="chartKPI3"></canvas></div>
+        <div class="px-2 pt-1 text-[10px] leading-4 text-gray-500">
+          <p>Cortes: Eje X &rarr; anticipacion de tela y Eje Y &rarr; desviacion entre ingreso real y planeado. Mientras mas a la derecha, mejor anticipacion; mientras mas cerca de 0, mejor adherencia. Rojo = atraso, azul = adelanto, verde = en fecha.</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div id="kpi2-detail-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-950/55 p-3" role="dialog" aria-modal="true" aria-labelledby="kpi2-detail-title">
+    <div class="flex max-h-[92vh] w-full max-w-6xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl">
+      <div class="flex items-start justify-between gap-3 border-b border-slate-200 px-4 py-3">
+        <div>
+          <h2 id="kpi2-detail-title" class="text-base font-bold text-slate-900">Detalle KPI 2: Ciclo de Corte</h2>
+          <p id="kpi2-detail-subtitle" class="text-xs text-slate-500">X: Semana agrupada de F.ING.REAL | Y: moda de dias desde F. Girado hasta ingreso costura real | Mes seleccionado y mes anterior</p>
+        </div>
+        <button id="kpi2-detail-close" type="button" class="flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 bg-slate-50 text-slate-600 transition hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-1" aria-label="Cerrar detalle">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" class="h-4 w-4">
+            <path d="M6 6l12 12"></path>
+            <path d="M18 6L6 18"></path>
+          </svg>
+        </button>
+      </div>
+      <div class="overflow-y-auto px-4 py-3">
+        <div class="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-[11px] leading-4 text-slate-600">
+          La grafica se construye con el mes seleccionado en el dashboard y el mes calendario anterior. Cada barra muestra la moda estadistica de dias transcurridos entre F. Girado y F. Ing. Real, agrupado por semana de ingreso real, ruta y tipo de bordado. Usa clic derecho sobre una barra para abrir el detalle de Cortes.
+        </div>
+        <p id="kpi2-detail-empty" class="mt-3 hidden rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-medium text-amber-700">No hay datos suficientes para mostrar el detalle del ciclo de corte.</p>
+        <div class="mt-3 overflow-x-auto">
+          <div id="kpi2-detail-chart-wrap" class="relative h-[420px] min-w-full">
+            <canvas id="chartKPI2Detail"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="kpi2-cuts-modal" class="fixed inset-0 z-[60] hidden items-center justify-center bg-slate-950/60 p-3" role="dialog" aria-modal="true" aria-labelledby="kpi2-cuts-title">
+    <div class="flex max-h-[92vh] w-full max-w-7xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl">
+      <div class="flex items-start justify-between gap-3 border-b border-slate-200 px-4 py-3">
+        <div>
+          <h2 id="kpi2-cuts-title" class="text-base font-bold text-slate-900">Cortes</h2>
+          <p id="kpi2-cuts-subtitle" class="text-xs text-slate-500">Detalle de cortes por barra del KPI 2.</p>
+        </div>
+        <button id="kpi2-cuts-close" type="button" class="flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 bg-slate-50 text-slate-600 transition hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-1" aria-label="Cerrar cortes">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" class="h-4 w-4">
+            <path d="M6 6l12 12"></path>
+            <path d="M18 6L6 18"></path>
+          </svg>
+        </button>
+      </div>
+      <div class="overflow-y-auto px-4 py-3">
+        <div id="kpi2-cuts-summary" class="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-[11px] leading-4 text-slate-600">
+          Cortes asociados a la barra seleccionada.
+        </div>
+        <p id="kpi2-cuts-empty" class="mt-3 hidden rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-medium text-amber-700">No hay cortes disponibles para esta barra.</p>
+        <div id="kpi2-cuts-table-wrap" class="mt-3 max-h-[60vh] overflow-auto rounded-xl border border-slate-200">
+          <table class="min-w-full divide-y divide-slate-200 text-[11px] text-slate-700">
+            <thead class="bg-slate-100 text-[10px] uppercase tracking-wide text-slate-600">
+              <tr>
+                <th class="sticky top-0 z-10 bg-slate-100 px-3 py-2 text-left font-semibold">CLIENTE</th>
+                <th class="sticky top-0 z-10 bg-slate-100 px-3 py-2 text-left font-semibold">OC</th>
+                <th class="sticky top-0 z-10 bg-slate-100 px-3 py-2 text-left font-semibold">COLOR</th>
+                <th class="sticky top-0 z-10 bg-slate-100 px-3 py-2 text-right font-semibold">PDS GIRADAS</th>
+                <th class="sticky top-0 z-10 bg-slate-100 px-3 py-2 text-left font-semibold">F. GIRADO</th>
+                <th class="sticky top-0 z-10 bg-slate-100 px-3 py-2 text-left font-semibold leading-tight">F.ING.COST<br>PROG</th>
+                <th class="sticky top-0 z-10 bg-slate-100 px-3 py-2 text-left font-semibold">FECHA CORTE</th>
+                <th class="sticky top-0 z-10 bg-slate-100 px-3 py-2 text-left font-semibold">F.ING.REAL</th>
+                <th class="sticky top-0 z-10 bg-slate-100 px-3 py-2 text-left font-semibold">F. DESPACHO</th>
+                <th class="sticky top-0 z-10 bg-slate-100 px-3 py-2 text-right font-semibold leading-tight">Dias transcurridos entre<br>F. Girado y F. Ing. Real</th>
+              </tr>
+            </thead>
+            <tbody id="kpi2-cuts-tbody" class="divide-y divide-slate-100 bg-white"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="kpi3-detail-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-950/55 p-3" role="dialog" aria-modal="true" aria-labelledby="kpi3-detail-title">
+    <div class="flex max-h-[92vh] w-full max-w-6xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl">
+      <div class="flex items-start justify-between gap-3 border-b border-slate-200 px-4 py-3">
+        <div>
+          <h2 id="kpi3-detail-title" class="text-base font-bold text-slate-900">Detalle KPI 3: Adherencia Costura - KPI 1: Entrega de tela</h2>
+          <p id="kpi3-detail-subtitle" class="text-xs text-slate-500">X: Semana de ingreso real | Y: dias promedio de adherencia | Y secundario: dias tela atrasados | Mes seleccionado y mes anterior</p>
+        </div>
+        <button id="kpi3-detail-close" type="button" class="flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 bg-slate-50 text-slate-600 transition hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-1" aria-label="Cerrar detalle">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" class="h-4 w-4">
+            <path d="M6 6l12 12"></path>
+            <path d="M18 6L6 18"></path>
+          </svg>
+        </button>
+      </div>
+      <div class="overflow-y-auto px-4 py-3">
+        <div class="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-[11px] leading-4 text-slate-600">
+          La grafica se construye con el mes seleccionado en el dashboard y el mes calendario anterior. Las lineas muestran el promedio de desviacion de adherencia por semana y estado, mientras la barra roja muestra el promedio de dias de tela atrasados (`F. Despacho - F. Girado`).
+        </div>
+        <p id="kpi3-detail-empty" class="mt-3 hidden rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-medium text-amber-700">No hay datos suficientes para mostrar el detalle de adherencia.</p>
+        <div class="mt-3 overflow-x-auto">
+          <div id="kpi3-detail-chart-wrap" class="relative h-[420px] min-w-full">
+            <canvas id="chartKPI3Detail"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="entregas-hover-tooltip" class="fixed z-[80] hidden w-[420px] pointer-events-none overflow-hidden rounded-xl border border-slate-300 bg-white shadow-2xl">
+    <div class="border-b border-slate-200 px-3 py-2">
+      <div id="entregas-hover-title" class="text-xs font-bold text-slate-900">Detalle</div>
+      <div id="entregas-hover-subtitle" class="text-[10px] leading-4 text-slate-500">Eje X: Cortes | Eje Y: FECHA CORTE - F. GIRADO</div>
+    </div>
+    <div class="px-3 py-2">
+      <canvas id="entregas-hover-canvas" width="340" height="220" class="block h-[220px] w-full"></canvas>
+      <div id="entregas-hover-summary" class="mt-1 whitespace-pre-line text-[10px] leading-4 text-slate-500"></div>
+    </div>
+  </div>
+
+  <script src="js/config.js"></script>
+  <script src="js/utils/text.js"></script>
+  <script src="js/api/google-sheets.js"></script>
+  <script src="js/pages/kpi-produccion.js"></script>
+</body>
+</html>

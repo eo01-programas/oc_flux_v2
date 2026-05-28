@@ -1,0 +1,1342 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tablero de Control de Producci?n</title>
+    <!-- Fuentes e Iconos -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <!-- Librer?a ExcelJS para generar archivos Excel con formato completo -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
+    <!-- Librer?a html2canvas para convertir HTML a imagen -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+    <link rel="stylesheet" href="css/pages/index.css">
+
+
+
+</head>
+
+<body>
+
+    <!-- LOADER -->
+    <div id="loader">
+        <div class="spinner"></div>
+        <p style="margin-top: 10px; font-weight: 500; color: var(--gray-500); font-size: 12px;">Cargando tabla...</p>
+    </div>
+
+    <!-- ERROR SCREEN -->
+    <div id="error-screen">
+        <div class="error-box">
+            <div style="color: var(--danger); font-size: 16px; font-weight: 700; margin-bottom: 8px;"><i
+                    class="ph ph-warning-circle"></i> Error</div>
+            <div id="error-details" style="color: var(--gray-500); font-size: 12px; line-height: 1.4;"></div>
+            <button class="btn-retry" onclick="location.reload()">Reintentar</button>
+        </div>
+    </div>
+
+    <!-- MODAL TENDIDO -->
+    <div id="modal-tendido" class="modal-overlay" onclick="if(event.target === this) cerrarModalTendido()">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div>
+                    <div class="modal-title" id="modal-tendido-title">OC: ---</div>
+                    <div class="modal-subtitle" id="modal-tendido-subtitle">COLOR: --- | PDS: ---</div>
+
+</html>
+</div>
+<button class="modal-close" onclick="cerrarModalTendido()">&times;</button>
+</div>
+<table class="modal-table">
+    <thead>
+        <tr>
+            <th style="width: 50%;">TENDIDO</th>
+            <th style="width: 50%;">PDS</th>
+        </tr>
+    </thead>
+    <tbody id="modal-tendido-tbody">
+        <!-- Filas din?micas -->
+    </tbody>
+</table>
+<div class="modal-buttons">
+    <button class="btn-modal btn-limpiar" onclick="limpiarModalTendido()">Limpiar</button>
+    <button class="btn-modal btn-guardar" onclick="guardarModalTendido()">Guardar</button>
+</div>
+</div>
+</div>
+
+<!-- MODAL NUEVO CORTE -->
+<div id="modal-nuevo-corte" class="modal-overlay" onclick="if(event.target === this) cerrarModalNuevoCorte()">
+    <div class="modal-content" style="max-width: 720px; width: 76%;">
+        <div class="modal-header">
+            <div>
+                <div class="modal-title">Nuevo corte</div>
+                <div class="modal-subtitle" id="modal-nuevo-corte-subtitle">Seleccione una OC y agregue nuevos tendidos
+                </div>
+            </div>
+            <button class="modal-close" onclick="cerrarModalNuevoCorte()">&times;</button>
+        </div>
+
+        <div style="display:flex; gap:10px; align-items:center; margin: 8px 0 12px;">
+            <input type="text" id="modal-nuevo-corte-oc-input" placeholder="Buscar OC (ej: 40644-2)"
+                style="flex:1; padding:10px 12px; border:1px solid var(--gray-300); border-radius:8px; font-size:13px;"
+                onkeydown="if(event.key==='Enter'){event.preventDefault();buscarOCNuevoCorte();}">
+            <button class="btn-modal btn-guardar" style="min-width:92px; padding:10px 16px;"
+                onclick="buscarOCNuevoCorte()">Buscar</button>
+        </div>
+
+        <div id="modal-nuevo-corte-oc-info"
+            style="display:none; margin-bottom:10px; font-size:12px; color:var(--gray-600); background:#f8fafc; border:1px solid var(--gray-200); border-radius:8px; padding:8px 10px;">
+        </div>
+
+        <table class="modal-table">
+            <thead>
+                <tr>
+                    <th style="width: 30%;">TENDIDO</th>
+                    <th style="width: 20%;">PDS</th>
+                    <th style="width: 20%;">estado_corte</th>
+                    <th style="width: 30%;">equipo_corte</th>
+                </tr>
+            </thead>
+            <tbody id="modal-nuevo-corte-tbody">
+                <tr>
+                    <td colspan="4" style="text-align:center; color:var(--gray-500);">Busque una OC para comenzar</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="modal-buttons">
+            <button class="btn-modal btn-limpiar" onclick="limpiarModalNuevoCorte()">Limpiar</button>
+            <button class="btn-modal btn-guardar" onclick="guardarModalNuevoCorte()">Guardar</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL EQ_CORTE -->
+<div id="modal-eq-corte" class="modal-overlay" onclick="if(event.target === this) cerrarModalEQCorte()">
+    <div class="modal-content"
+        style="width: 49%; max-width: 420px; height: 500px; display: flex; flex-direction: column; padding: 20px;">
+        <div class="modal-header">
+            <div>
+                <div class="modal-title">Equipos de Corte</div>
+                <div class="modal-subtitle">Gestionar lista de equipos</div>
+            </div>
+            <button class="modal-close" onclick="cerrarModalEQCorte()">&times;</button>
+        </div>
+        <div
+            style="flex: 1; overflow-y: auto; margin-bottom: 20px; border: 1px solid var(--gray-200); border-radius: 6px;">
+            <table class="modal-table" style="width: 100%; margin: 0; border: none; border-radius: 0;">
+                <thead style="position: sticky; top: 0; z-index: 10;">
+                    <tr>
+                        <th style="width: 30%; padding: 12px 12px;">EQ_Corte</th>
+                        <th style="width: 70%; padding: 12px 12px;">Nombre</th>
+                    </tr>
+                </thead>
+                <tbody id="modal-eq-corte-tbody">
+                    <!-- Filas din?micas -->
+                </tbody>
+            </table>
+        </div>
+        <div class="modal-buttons">
+            <button class="btn-modal btn-limpiar" onclick="cerrarModalEQCorte()">Cancelar</button>
+            <button class="btn-modal btn-guardar" onclick="guardarModalEQCorte()">Guardar</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL CAMBIO EQUIPO_CORTE (CLICK DERECHO EN OC) -->
+<div id="modal-corte-oc-equipo" class="modal-overlay" onclick="if(event.target === this) cerrarModalEquipoCorteOC()">
+    <div class="modal-content" style="max-width:520px; width:56%;">
+        <div class="modal-header">
+            <div>
+                <div class="modal-title">Cambiar equipo_corte</div>
+                <div class="modal-subtitle" id="modal-corte-oc-equipo-subtitle">OP-PTDA: --</div>
+            </div>
+            <button class="modal-close" onclick="cerrarModalEquipoCorteOC()">&times;</button>
+        </div>
+        <div style="padding: 10px 6px; font-size: 13px; color: var(--gray-700);">
+            <div style="margin-bottom: 8px;"><strong>Mover cortes?</strong></div>
+            <select id="modal-corte-oc-equipo-scope" class="table-select modal-equipo-select"
+                style="width:100%; margin-bottom:12px;" onchange="updateModalEquipoCorteOCInfo()">
+                <option value="group">Varias OC (OP-PTDA)</option>
+                <option value="single">Solo esta OC</option>
+            </select>
+            <div style="margin-bottom: 8px;"><strong>Nuevo Turno:</strong></div>
+            <select id="modal-corte-oc-turno-select" class="table-select modal-equipo-select" style="width:100%; margin-bottom:12px;">
+                <option value="PROG 1T">PROG 1T</option>
+                <option value="PROG 2T">PROG 2T</option>
+                <option value="PROG 3T">PROG 3T</option>
+            </select>
+            <div style="margin-bottom: 8px;"><strong>Nuevo equipo:</strong></div>
+            <select id="modal-corte-oc-equipo-select" class="table-select modal-equipo-select" style="width:100%;">
+                <option value="">-- Seleccionar --</option>
+            </select>
+            <div id="modal-corte-oc-equipo-info" style="margin-top:10px; font-size:12px; color:var(--gray-500);"></div>
+        </div>
+        <div style="display:flex; justify-content:flex-end; gap:8px; padding-top:8px;">
+            <button class="btn-modal btn-limpiar" onclick="cerrarModalEquipoCorteOC()">Cancelar</button>
+            <button class="btn-modal btn-guardar" onclick="guardarModalEquipoCorteOC()">Aplicar</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL OC INFO -->
+<div id="modal-oc" class="modal-overlay" onclick="if(event.target === this) cerrarModalOC()">
+    <div class="modal-content" style="max-width:420px; width:50%">
+        <div class="modal-header">
+            <div>
+                <div class="modal-title" id="modal-oc-title">OC COLOR</div>
+                <div class="modal-subtitle" id="modal-oc-subtitle"></div>
+            </div>
+            <button class="modal-close" onclick="cerrarModalOC()">&times;</button>
+        </div>
+        <table class="modal-table">
+            <tbody id="modal-oc-tbody">
+            </tbody>
+        </table>
+        <div class="modal-buttons">
+            <button class="btn-modal btn-limpiar" onclick="cerrarModalOC()">Cerrar</button>
+        </div>
+    </div>
+</div>
+
+<div id="modal-oc-search-ok" class="modal-overlay"
+    onclick="if(event.target === this) cerrarModalOcSearchHabilitadoOk()">
+    <div class="modal-content" style="max-width:980px; width:88%;">
+        <div class="modal-header">
+            <div>
+                <div class="modal-title">OC con estado_habilitado = OK</div>
+                <div class="modal-subtitle" id="modal-oc-search-ok-subtitle">Resultado de bÃºsqueda</div>
+            </div>
+            <button class="modal-close" onclick="cerrarModalOcSearchHabilitadoOk()">&times;</button>
+        </div>
+        <div style="max-height:420px; overflow:auto;">
+            <table class="modal-table" style="width:100%; margin:0;">
+                <thead>
+                    <tr>
+                        <th>CLIENTE</th>
+                        <th>OC encontrada</th>
+                        <th>COLOR</th>
+                        <th>PDS</th>
+                        <th>F.ING.REAL</th>
+                        <th>PLANTA</th>
+                        <th>LINEA</th>
+                        <th>estado_habilitado</th>
+                    </tr>
+                </thead>
+                <tbody id="modal-oc-search-ok-tbody">
+                    <tr>
+                        <td colspan="8" style="text-align:center; padding:18px; color:var(--gray-500);">No hay datos
+                            para mostrar.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="modal-buttons">
+            <button class="btn-modal btn-limpiar" onclick="cerrarModalOcSearchHabilitadoOk()">Cerrar</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL LAVADORA (Abrir desde Corte PROG 1T/2T/3T) -->
+<div id="modal-lavadora" class="modal-overlay" onclick="if(event.target === this) cerrarModalLavado()">
+    <div class="modal-content" style="max-width:420px; width:46%;">
+        <div class="modal-header">
+            <div>
+                <div class="modal-title" id="modal-lavadora-title">OP-PTDA: --</div>
+                <div class="modal-subtitle" id="modal-lavadora-sub"
+                    style="font-size:12px; color:var(--gray-500); margin-top:4px;">Estado actual: (vac?o)</div>
+            </div>
+            <button class="modal-close" onclick="cerrarModalLavado()">&times;</button>
+        </div>
+        <div style="padding:8px 6px; font-size:13px; color:var(--gray-700);">
+            <div style="margin-bottom:10px;"><strong>RUTA TELA:</strong> <span id="modal-lavadora-ruta">-</span></div>
+            <div style="margin-bottom:12px;">Seleccione acci?n:</div>
+            <div style="display:flex; gap:10px; align-items:center;">
+                <select id="modal-lavadora-select" class="table-select"
+                    style="width:100%; padding:8px; font-size:13px;">
+                    <option value="">-- Seleccione --</option>
+                    <option value="EN LAV (devolucion)">EN LAV (devolucion)</option>
+                </select>
+            </div>
+        </div>
+        <div style="display:flex; justify-content:flex-end; gap:8px; padding-top:8px;">
+            <button class="btn-modal btn-limpiar" onclick="cerrarModalLavado()">Cancelar</button>
+            <button class="btn-modal btn-guardar" onclick="onModalLavadoraApply()">Aplicar</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL CONFIRMACI?N LAVADORA -->
+<div id="modal-confirm-washer" class="modal-overlay" onclick="if(event.target === this) cerrarModalConfirmWasher()">
+    <div class="modal-content" style="max-width:360px; width:40%;">
+        <div class="modal-header">
+            <div class="modal-title">Confirmar cambio</div>
+            <button class="modal-close" onclick="cerrarModalConfirmWasher()">&times;</button>
+        </div>
+        <p id="modal-confirm-washer-text"
+            style="margin: 16px 0; font-size:13px; color:var(--gray-600); line-height:1.5;">
+            ?Est? seguro que desea actualizar el estado de lavado?
+        </p>
+        <div class="modal-buttons">
+            <button class="btn-modal btn-limpiar" onclick="handleConfirmWasher(false)">No</button>
+            <button class="btn-modal btn-guardar" onclick="handleConfirmWasher(true)">Si</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL CONFIRMACION ENUMERADO -->
+<div id="modal-confirm-enumerado" class="modal-overlay"
+    onclick="if(event.target === this) cerrarModalConfirmEnumerado()">
+    <div class="modal-content" style="max-width:360px; width:40%;">
+        <div class="modal-header">
+            <div class="modal-title">Confirmar</div>
+            <button class="modal-close" onclick="cerrarModalConfirmEnumerado()">&times;</button>
+        </div>
+        <p style="margin: 16px 0; font-size:13px; color:var(--gray-600); line-height:1.5;">
+            YA ESTA ENUMERADO?
+        </p>
+        <div class="modal-buttons">
+            <button class="btn-modal btn-limpiar" onclick="handleConfirmEnumerado(false)">NO</button>
+            <button class="btn-modal btn-guardar" onclick="handleConfirmEnumerado(true)">SI</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL CONFIRMACION DEPURADO -->
+<div id="modal-confirm-depurado" class="modal-overlay" onclick="if(event.target === this) cerrarModalConfirmDepurado()">
+    <div class="modal-content" style="max-width:380px; width:42%;">
+        <div class="modal-header">
+            <div class="modal-title">Confirmar</div>
+            <button class="modal-close" onclick="cerrarModalConfirmDepurado()">&times;</button>
+        </div>
+        <p style="margin: 16px 0; font-size:13px; color:var(--gray-600); line-height:1.5;">
+            Esta seguro de Depurar todo el corte?
+        </p>
+        <div class="modal-buttons">
+            <button class="btn-modal btn-limpiar" onclick="handleConfirmDepurado(false)">NO</button>
+            <button class="btn-modal btn-guardar" onclick="handleConfirmDepurado(true)">SI</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL INGRESO A COSTURA -->
+<div id="modal-ingreso-costura" class="modal-overlay" onclick="if(event.target === this) cerrarModalIngresoCostura()">
+    <div class="modal-content" style="max-width:420px; width:46%;">
+        <div class="modal-header">
+            <div>
+                <div class="modal-title">INGRESO A COSTURA</div>
+                <div class="modal-subtitle" id="modal-ingreso-costura-sub"
+                    style="font-size:12px; color:var(--gray-500); margin-top:4px;">CLIENTE OP-CORTE COLOR PDS</div>
+            </div>
+            <button class="modal-close" onclick="cerrarModalIngresoCostura()">&times;</button>
+        </div>
+        <div style="padding:12px 6px; font-size:13px; color:var(--gray-700);">
+            <div style="margin-bottom:14px;">
+                <label style="display:block; font-weight:600; margin-bottom:4px; color:var(--gray-800);">PLANTA</label>
+                <select id="modal-ingreso-planta"
+                    style="width:100%; padding:8px; border:1px solid var(--gray-300); border-radius:4px; font-size:12px;">
+                    <option value="">-- Seleccione --</option>
+                    <option value="COFACO">COFACO</option>
+                    <option value="CITI1">CITI1</option>
+                    <option value="CITI2">CITI2</option>
+                    <option value="CITI3">CITI3</option>
+                    <option value="CITI4">CITI4</option>
+                    <option value="CITI5">CITI5</option>
+                    <option value="S/DESTINO">S/DESTINO</option>
+                </select>
+            </div>
+            <div style="margin-bottom:14px;">
+                <label style="display:block; font-weight:600; margin-bottom:4px; color:var(--gray-800);">LINEA</label>
+                <input type="text" id="modal-ingreso-linea" placeholder="Ingrese la l?nea"
+                    style="width:100%; padding:8px; border:1px solid var(--gray-300); border-radius:4px; font-size:12px;"
+                    onkeydown="if(event.key==='Enter') guardarModalIngresoCostura()">
+            </div>
+        </div>
+        <div style="display:flex; justify-content:flex-end; gap:8px; padding-top:8px;">
+            <button class="btn-modal btn-limpiar" onclick="cerrarModalIngresoCostura()">Cancelar</button>
+            <button class="btn-modal btn-guardar" style="background-color: var(--primary);"
+                onclick="guardarModalIngresoCostura()">INGRESAR</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL DEVOLUCION DE CORTES (HABILITADO) -->
+<div id="modal-devolucion-habilitado" class="modal-overlay"
+    onclick="if(event.target === this) cerrarModalDevolucionHabilitado()">
+    <div class="modal-content" style="max-width:920px; width:88%;">
+        <div class="modal-header">
+            <div>
+                <div class="modal-title">Devolucion de cortes</div>
+                <div class="modal-subtitle">Buscar por grupo de OC y regresar de OK a PROG 1T/2T/3T</div>
+            </div>
+            <button class="modal-close" onclick="cerrarModalDevolucionHabilitado()">&times;</button>
+        </div>
+        <div style="display:flex; gap:8px; align-items:center; margin-bottom:10px;">
+            <input id="modal-devolucion-habilitado-oc" type="text" placeholder="Buscar OC (ej: 39997-4)"
+                style="flex:1; padding:10px 12px; border:1px solid var(--gray-300); border-radius:8px; font-size:13px;"
+                onkeydown="if(event.key==='Enter'){event.preventDefault();buscarOCHabilitadoDevolucion();}">
+            <button class="btn-modal btn-guardar" style="min-width:96px; padding:10px 16px;"
+                onclick="buscarOCHabilitadoDevolucion()">Buscar</button>
+        </div>
+        <div id="modal-devolucion-habilitado-info"
+            style="display:none; margin-bottom:10px; font-size:12px; color:var(--gray-600); background:#f8fafc; border:1px solid var(--gray-200); border-radius:8px; padding:8px 10px;">
+        </div>
+        <div class="modal-devolucion-table-wrap">
+            <table class="modal-table" style="width:100%; margin:0;">
+                <thead>
+                    <tr>
+                        <th style="width: 120px;">CLIENTE</th>
+                        <th style="width: 120px;">OC</th>
+                        <th style="width: 60px; text-align:center;">PDS</th>
+                        <th style="width: 90px; text-align:center;">PLANTA</th>
+                        <th style="width: 90px; text-align:center;">LINEA</th>
+                        <th style="width: 110px; text-align:center;">HAB</th>
+                    </tr>
+                </thead>
+                <tbody id="modal-devolucion-habilitado-tbody">
+                    <tr>
+                        <td colspan="6" class="modal-devolucion-empty">Ingrese una OC y presione Buscar.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="modal-buttons">
+            <button class="btn-modal btn-limpiar" onclick="cerrarModalDevolucionHabilitado()">Cancelar</button>
+            <button id="btn-modal-devolucion-generar" class="btn-modal btn-guardar"
+                onclick="generarDevolucionHabilitado()">GENERAR DEVOLUCION</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL NOTAS HABILITADO (HOJA 3) -->
+<div id="modal-habilitado-hoja3" class="modal-overlay" onclick="if(event.target === this) cerrarModalHabilitadoHoja3()">
+    <div class="modal-content" style="max-width:1180px; width:94%;">
+        <div class="modal-header">
+            <div>
+                <div class="modal-title">Transfer en prendas y/o Comentarios generales</div>
+                <div class="modal-subtitle" id="modal-habilitado-hoja3-subtitle">Turno: -</div>
+            </div>
+            <button class="modal-close" onclick="cerrarModalHabilitadoHoja3()">&times;</button>
+        </div>
+        <div class="modal-habilitado-hoja3-body">
+            <div class="habilitado-hoja3-toolbar" style="margin-bottom:10px;">
+                <div class="habilitado-hoja3-actions">
+                    <button class="habilitado-hoja3-btn" type="button" onclick="addHabilitadoHoja3Row()">+ Fila</button>
+                    <button class="habilitado-hoja3-btn" type="button"
+                        onclick="limpiarHabilitadoHoja3()">Limpiar</button>
+                    <button id="btn-guardar-habilitado-hoja3" class="habilitado-hoja3-btn primary" type="button"
+                        onclick="guardarHabilitadoHoja3()">Guardar</button>
+                </div>
+            </div>
+            <div class="habilitado-hoja3-grid">
+                <div class="habilitado-hoja3-table-wrap">
+                    <table class="habilitado-hoja3-table habilitado-hoja3-table-left">
+                        <thead>
+                            <tr>
+                                <th style="width:14%;">CLIENTE</th>
+                                <th style="width:30%;">Ops</th>
+                                <th style="width:12%;">COLOR</th>
+                                <th style="width:6%;">PDS</th>
+                                <th style="width:38%;">COMENTARIO</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody-habilitado-hoja3-left"></tbody>
+                    </table>
+                </div>
+                <div class="habilitado-hoja3-table-wrap">
+                    <table class="habilitado-hoja3-table habilitado-hoja3-table-right">
+                        <thead>
+                            <tr>
+                                <th>Comentarios generales</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody-habilitado-hoja3-right"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<!-- MEN? FLOTANTE CON DESPLEGABLE -->
+<div class="floating-menu-container">
+    <button class="floating-menu-toggle" id="floating-menu-toggle" title="Men?" aria-label="Men?">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M7 15l5-5 5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round" fill="none" />
+        </svg>
+    </button>
+    <div class="floating-menu-items" id="floating-menu-items">
+<button class="floating-menu-item" title="Correo almac?n" onclick="downloadCorreoAlmacenExcel()"
+            aria-label="Correo almac?n">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path
+                    d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"
+                    fill="currentColor" />
+            </svg>
+        </button>
+        <button class="floating-menu-item kpi-shortcut" title="KPI"
+            onclick="window.location.href='KPI_optimizar_moda.html'" aria-label="KPI">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M4 19h16" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                <path d="M7 15l4-4 3 2 4-6" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round" />
+                <circle cx="7" cy="15" r="1.4" fill="currentColor" />
+                <circle cx="11" cy="11" r="1.4" fill="currentColor" />
+                <circle cx="14" cy="13" r="1.4" fill="currentColor" />
+                <circle cx="18" cy="7" r="1.4" fill="currentColor" />
+            </svg>
+            <span>KPI</span>
+        </button>
+        <button class="floating-menu-item stock-shortcut" title="Stock"
+            onclick="window.location.href='stock.html'" aria-label="Stock">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M4 7.5L12 3l8 4.5v9L12 21l-8-4.5v-9Z" stroke="currentColor" stroke-width="2"
+                    stroke-linejoin="round" fill="none" />
+                <path d="M12 3v18M4 7.5l8 4.5 8-4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round" />
+            </svg>
+            <span>Stock</span>
+        </button>
+        <button class="floating-menu-item" title="RIBs" onclick="window.location.href='rib_status.html'"
+            aria-label="RIBs">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="4" y="4" width="16" height="16" rx="3" stroke="currentColor" stroke-width="2" />
+                <path d="M8 7v10M12 7v10M16 7v10" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+            </svg>
+        </button>
+        <button class="floating-menu-item" title="Nro molde" onclick="window.location.href='moldes.html'"
+            aria-label="Nro molde">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="3" y="3" width="7" height="7" rx="1" stroke="currentColor" stroke-width="2" fill="none" />
+                <rect x="14" y="3" width="7" height="7" rx="1" stroke="currentColor" stroke-width="2" fill="none" />
+                <rect x="3" y="14" width="7" height="7" rx="1" stroke="currentColor" stroke-width="2" fill="none" />
+                <rect x="14" y="14" width="7" height="7" rx="1" stroke="currentColor" stroke-width="2" fill="none" />
+            </svg>
+        </button>
+    </div>
+</div>
+
+<!-- MODAL STOCK FUNNEL -->
+<div id="modal-stock-funnel" class="modal-overlay" onclick="if(event.target === this) closeStockFunnelModal()">
+    <div class="modal-content" style="max-width:480px; width:56%;">
+        <div class="modal-header">
+            <div>
+                <div class="modal-title">Stock por Estado</div>
+                <div class="modal-subtitle">Visualizaci?n tipo embudo - tama?os proporcionales a PDS</div>
+            </div>
+            <button class="modal-close" onclick="closeStockFunnelModal()">&times;</button>
+        </div>
+        <div id="funnel-chart" style="padding:8px 6px 16px 6px;">Cargando...</div>
+        <div style="display:flex; justify-content:flex-end; gap:8px;">
+            <button class="btn-modal btn-limpiar" onclick="closeStockFunnelModal()">Cerrar</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL CARGA ASIGNAR ARTES -->
+<div id="modal-loading-artes" class="modal-overlay" style="background: rgba(0,0,0,0.7); pointer-events: auto;">
+    <div class="modal-content-loading" style="pointer-events: none;">
+        <div style="text-align: center;">
+            <div class="spinner" style="margin: 0 auto 20px auto;"></div>
+            <div style="font-size: 16px; font-weight: 600; color: var(--gray-800); margin-bottom: 8px;">Cargando
+                cambios...</div>
+            <div id="loading-progress-text"
+                style="font-size: 13px; color: var(--primary); font-weight: 600; margin-bottom: 6px;"></div>
+            <div
+                style="width: 220px; height: 6px; background: var(--gray-200); border-radius: 3px; margin: 0 auto 8px auto; overflow: hidden;">
+                <div id="loading-progress-bar"
+                    style="width: 0%; height: 100%; background: var(--primary); border-radius: 3px; transition: width 0.3s ease;">
+                </div>
+            </div>
+            <div id="loading-eta-text" style="font-size: 12px; color: var(--gray-500);">Estimando tiempo restante...
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL CARGA PROPAGACI?N DATOS -->
+<div id="modal-loading-propagacion" class="modal-overlay"
+    style="background: rgba(0,0,0,0.5); pointer-events: auto; display: none;">
+    <div class="modal-content-loading"
+        style="pointer-events: none; background: white; padding: 30px 40px; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.2);">
+        <div style="text-align: center;">
+            <div class="spinner" style="margin: 0 auto 15px auto;"></div>
+            <div style="font-size: 15px; font-weight: 600; color: var(--gray-800); margin-bottom: 6px;">Guardando
+                datos...</div>
+            <div id="propagacion-status" style="font-size: 12px; color: var(--gray-500);">Actualizando filas
+                relacionadas</div>
+        </div>
+    </div>
+</div>
+
+<div id="modal-loading-eliminar-tendido" class="modal-overlay"
+    style="background: rgba(0,0,0,0.5); pointer-events: auto; display: none;">
+    <div class="modal-content-loading"
+        style="pointer-events: none; background: white; padding: 30px 40px; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.2);">
+        <div style="text-align: center;">
+            <div class="spinner" style="margin: 0 auto 15px auto;"></div>
+            <div style="font-size: 15px; font-weight: 600; color: var(--gray-800); margin-bottom: 6px;">Eliminando
+                tendido...</div>
+            <div style="font-size: 12px; color: var(--gray-500);">Espere, por favor</div>
+        </div>
+    </div>
+</div>
+
+<!-- HEADER -->
+<header>
+    <div class="brand"><a href="cargar_giros.html" class="icon-link" title="Cargar giros"
+            style="color:inherit;text-decoration:none;display:inline-flex;align-items:center;"><i
+                class="ph ph-table"></i></a> PCP confecciones
+        <div class="search-oc-pill" style="position:relative;">
+            <i class="ph ph-magnifying-glass"></i>
+            <span class="search-oc-label">OC:</span>
+            <input type="text" class="search-oc-input" id="search-oc-input" placeholder="Buscar..." autocomplete="off"
+                onkeydown="if(event.key==='Enter'){event.preventDefault();buscarOC(this.value);}">
+            <div id="search-oc-msg" style="display:none;"></div>
+        </div>
+        <button class="search-filter-clear-btn" type="button" onclick="clearAllSearchFilters()"
+            title="Quitar todos los filtros de b?squeda" aria-label="Quitar todos los filtros de b?squeda">
+            <i class="ph ph-funnel-simple"></i>
+        </button>
+    </div>
+    <nav class="nav-tabs">
+        <button class="nav-tab active" onclick="switchView('bloqueo', this)">
+            <i class="ph ph-lock-key"></i> Bloqueo <span class="badge" id="count-bloqueo">0</span>
+        </button>
+        <button class="nav-tab" onclick="switchView('lavado', this)">
+            <i class="ph ph-drop"></i> Lavanderia <span class="badge" id="count-lavado">0</span>
+        </button>
+        <button class="nav-tab" onclick="switchView('corte', this)">
+            <i class="ph ph-scissors"></i> Corte Pzas <span class="badge" id="count-corte">0</span>
+        </button>
+        <button class="nav-tab" onclick="switchView('corte-bloques', this)">
+            <i class="ph ph-stack"></i> Corte Bloques <span class="badge" id="count-corte-bloques">0</span>
+        </button>
+        <button class="nav-tab" onclick="switchView('enumerado', this)">
+            <i class="ph ph-list-numbers"></i> Enumerado <span class="badge" id="count-enumerado">0</span>
+        </button>
+        <button class="nav-tab" onclick="switchView('artes', this)">
+            <i class="ph ph-feather"></i> Artes (Pza) <span class="badge" id="count-artes">0</span>
+        </button>
+        <button class="nav-tab" onclick="switchView('habilitado', this)">
+            <i class="ph ph-check-square"></i> Habilitado <span class="badge" id="count-habilitado">0</span>
+        </button>
+    </nav>
+</header>
+
+<main>
+
+    <!-- VISTA BLOQUEO (TABLA) -->
+    <section id="view-bloqueo" class="view-section active">
+        <div id="print-date-bloqueo"></div>
+        <div id="print-header-bloqueo">Programa de Bloqueo de tela Lavada</div>
+        <div class="sub-nav">
+            <button id="btn-xprog" class="sub-tab active" onclick="filterBloqueo('X PROG', this)">
+                Por Programar <span class="kg-badge" id="kg-xprog">[-]</span>
+            </button>
+            <button id="btn-prog" class="sub-tab" onclick="filterBloqueo('PROG', this)">
+                Programado <span class="kg-badge" id="kg-prog">[-]</span>
+            </button>
+            <button id="btn-print-bloqueo-prog" class="btn-print-circle" onclick="printBloqueoProgramado()"
+                style="display:none;" title="Imprimir Programado" aria-label="Imprimir Programado">
+                <i class="ph ph-printer"></i>
+            </button>
+            <!-- Bot?n Programar Bloqueo (oculto por defecto, aparece cuando hay filas seleccionadas) -->
+            <button id="btn-programar-bloqueo" class="sub-tab" onclick="programarFilasBloqueo()"
+                style="display:none; background: var(--success); color: white; border: 1px solid var(--success); font-weight: 700;">
+                <i class="ph ph-check-circle"></i> Programar <span class="kg-badge" id="badge-programar-bloqueo-count"
+                    style="background: rgba(255,255,255,0.3); color: white;">0</span>
+            </button>
+        </div>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 18px;">RSV</th>
+                        <th id="th-bloqueo-p" style="width: 30px; display:none;">P</th>
+                        <th style="width: 38px;">F. GIRADO</th>
+                        <th style="width: 65px; text-align: center;">HOD</th>
+                        <th style="width: 65px; text-align: center;">F.ING.COST</th>
+                        <th id="th-bloqueo-cliente" style="width: 30px;"><span class="print-hide">CLIENTE</span><span
+                                class="print-show">CLI</span></th>
+                        <th id="th-bloqueo-ruta" style="width: 60px;">RUTA</th>
+
+                        <!-- AUMENTADO A 80px PARA VER DATOS LARGOS -->
+                        <th style="width: 80px;">OP-PTDA</th>
+
+                        <th style="width: 40px;">OC</th>
+                        <th style="width: 65px;">COLOR</th>
+                        <th id="th-bloqueo-kg" style="width: 65px; text-align:right;"><span class="print-hide">KG
+                                GIRADOS</span><span class="print-show">KG</span></th>
+                        <th style="width: 70px;">ART.</th>
+                        <th style="width: 45px;">#MOLDE</th>
+                        <th style="width: 65px;">TIPO CERT.</th>
+                        <th id="th-bloqueo-estado" style="width: 50px;">Bloqueo</th>
+                        <th style="width: 50px;">RIB</th>
+                    </tr>
+                </thead>
+                <tbody id="tbody-bloqueo"></tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- VISTA ENUMERADO (FILAS CON STATUS = OK) -->
+    <section id="view-enumerado" class="view-section">
+        <div class="sub-nav" style="margin-bottom:10px;">
+            <button id="enumerado-btn-por" class="sub-tab active">
+                Por enumerar <span class="kg-badge" id="enumerado-pds-por">[-]</span>
+            </button>
+        </div>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th id="th-enumerado-p" style="width: 30px;">P</th>
+                        <th style="width: 65px; text-align: center;">HOD</th>
+                        <th style="width: 75px; text-align: center;">F.ING.COST</th>
+                        <th style="width: 40px;">CLIENTE</th>
+                        <th style="width: 50px;">RUTA</th>
+                        <th style="width: 45px;">OC</th>
+                        <th style="width: 80px;">COLOR</th>
+                        <th style="width: 45px; text-align:center;">PDS</th>
+                        <th style="width: 60px;">PRENDA</th>
+                        <th style="width: 70px;">TIPO CERT.</th>
+                        <th style="width: 85px;">RIB</th>
+                        <th style="width: 80px;">EQUIPO_CORTE</th>
+                        <th style="width: 80px;">STATUS_CORTE</th>
+                        <th style="width: 80px;">BLOQUES?</th>
+                        <th style="width: 80px;">ESTADO_ENM</th>
+                    </tr>
+                </thead>
+                <tbody id="tbody-enumerado"></tbody>
+            </table>
+        </div>
+    </section>
+    <!-- VISTA ARTES (Pza) -->
+    <section id="view-artes" class="view-section">
+        <div class="sub-nav">
+            <button id="btn-artes-bordado" class="sub-tab active" onclick="filterArtes('BORDADO', this)">
+                Bordado <span class="kg-badge" id="artes-pds-bordado">[-]</span>
+            </button>
+            <button id="btn-artes-estampado" class="sub-tab" onclick="filterArtes('ESTAMPADO', this)">
+                Estampado <span class="kg-badge" id="artes-pds-estampado">[-]</span>
+            </button>
+            <button id="btn-artes-asignar" class="sub-tab" onclick="filterArtes('ASIGNAR', this)">
+                Asignar
+            </button>
+        </div>
+
+        <!-- Sub-tabs espec?ficos para Bordado: X PROG / PROG -->
+        <div id="bordado-subtabs" style="display:flex; gap:8px; align-items:center; margin-bottom:10px;">
+            <button id="btn-bordado-xprog" class="sub-tab active" onclick="filterBordado('X PROG', this)">X PROG <span
+                    class="kg-badge" id="artes-bordado-xprog-count">[-]</span></button>
+            <button id="btn-bordado-prog" class="sub-tab" onclick="filterBordado('PROG', this)">PROG <span
+                    class="kg-badge" id="artes-bordado-prog-count">[-]</span></button>
+        </div>
+
+        <!-- Sub-tabs espec?ficos para Estampado: X PROG / PROG (oculto hasta activar Estampado) -->
+        <div id="estampado-subtabs" style="display:none; gap:8px; align-items:center; margin-bottom:10px;">
+            <button id="btn-estampado-xprog" class="sub-tab active" onclick="filterEstampado('X PROG', this)">X PROG
+                <span class="kg-badge" id="artes-estampado-xprog-count">[-]</span></button>
+            <button id="btn-estampado-prog" class="sub-tab" onclick="filterEstampado('PROG', this)">PROG <span
+                    class="kg-badge" id="artes-estampado-prog-count">[-]</span></button>
+        </div>
+
+        <!-- Filtros para Asignar Artes -->
+        <div id="artes-asignar-filters" style="display:none; margin-bottom:15px; gap:10px; align-items:center;">
+            <label style="font-weight:600; font-size:12px; color:var(--gray-600);">Filtrar por:</label>
+            <select id="filter-artes-haydato"
+                style="padding:6px 10px; border-radius:4px; border:1px solid var(--gray-300); font-size:12px;"
+                onchange="renderArtesAsignar()">
+                <option value="">Todos</option>
+                <option value="CON">Con dato</option>
+                <option value="SIN">Sin dato</option>
+            </select>
+            <select id="filter-artes-cliente"
+                style="padding:6px 10px; border-radius:4px; border:1px solid var(--gray-300); font-size:12px;"
+                onchange="renderArtesAsignar()">
+                <option value="">Todos los clientes</option>
+            </select>
+            <div id="artes-estilo-multiselect" class="custom-multiselect">
+                <button type="button" class="multiselect-btn" onclick="toggleArtesEstiloDropdown()">
+                    <span id="artes-estilo-label">Todos los estilos</span>
+                    <span class="arrow">?</span>
+                </button>
+                <div id="artes-estilo-dropdown" class="multiselect-dropdown">
+                    <input type="text" class="multiselect-search" id="artes-estilo-search"
+                        placeholder="Buscar estilo..." oninput="filterArtesEstiloOptions()">
+                    <div class="multiselect-actions">
+                        <a onclick="selectAllArtesEstilos(true)">Todos</a>
+                        <a onclick="selectAllArtesEstilos(false)">Ninguno</a>
+                    </div>
+                    <div class="multiselect-option multiselect-select-all" id="artes-estilo-select-filtered"
+                        style="border-bottom:1px solid var(--gray-200); background:var(--gray-50); font-weight:600; display:none;">
+                        <input type="checkbox" id="chk-artes-select-filtered"
+                            onchange="selectAllFilteredArtesEstilos(this.checked)">
+                        <label for="chk-artes-select-filtered">Seleccionar todos</label>
+                    </div>
+                    <div id="artes-estilo-options"></div>
+                </div>
+            </div>
+            <button onclick="guardarCambiosAsignarArtes()"
+                style="padding:6px 16px; background:var(--primary); color:white; border:none; border-radius:4px; font-weight:600; cursor:pointer; font-size:12px;">Guardar</button>
+            <label class="filter-item"
+                style="margin-left:8px; font-weight:600; font-size:12px; display:inline-flex; align-items:center; gap:6px;">
+                <input type="checkbox" id="chk-artes-para-todo" style="width:18px;height:18px;vertical-align:middle;">
+                Para todo
+            </label>
+        </div>
+
+        <!-- Tabla Bordado -->
+        <div id="table-container-artes-bordado" class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 65px; text-align: center;">HOD</th>
+                        <th style="width: 75px; text-align: center;">F.ING.COST</th>
+                        <th style="width: 55px; text-align:center;">STATUS</th>
+                        <th style="width: 40px;">CLIENTE</th>
+                        <th style="width: 45px;">OC</th>
+                        <th style="width: 80px;">COLOR</th>
+                        <th style="width: 45px; text-align:center;">PDS</th>
+                        <th style="width: 60px;">PRENDA</th>
+                        <th style="width: 70px;">TIPO CERT.</th>
+                        <th style="width: 80px;">n.BDxpda</th>
+                        <th style="width: 120px;">tipo-bordado</th>
+                        <th style="width: 100px;">estado_bordado</th>
+                    </tr>
+                </thead>
+                <tbody id="tbody-artes-bordado"></tbody>
+            </table>
+        </div>
+
+        <!-- Tabla Estampado -->
+        <div id="table-container-artes-estampado" class="table-container" style="display:none;">
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 65px; text-align: center;">HOD</th>
+                        <th style="width: 75px; text-align: center;">F.ING.COST</th>
+                        <th style="width: 40px;">CLIENTE</th>
+                        <th style="width: 45px;">OC</th>
+                        <th style="width: 80px;">COLOR</th>
+                        <th style="width: 45px; text-align:center;">PDS</th>
+                        <th style="width: 60px;">PRENDA</th>
+                        <th style="width: 70px;">TIPO CERT.</th>
+                        <th style="width: 80px;">n.ESTAMPxpda</th>
+                        <th style="width: 100px;">estado_estampado</th>
+                    </tr>
+                </thead>
+                <tbody id="tbody-artes-estampado"></tbody>
+            </table>
+        </div>
+
+        <!-- Tabla para Asignar Artes -->
+        <div id="table-container-artes-asignar" class="table-container" style="display:none;">
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 100px;">CLIENTE</th>
+                        <th style="width: 150px;">ESTILO</th>
+                        <th style="width: 250px;">OP</th>
+                        <th class="col-bordado" style="width: 120px;">tipo-bordado</th>
+                        <th class="col-bordado" style="width: 120px;">n.BDxpda</th>
+                        <th class="col-estampado" style="width: 120px;">n.ESTAMPxpda</th>
+                        <th class="col-transfer" style="width: 120px;">tipo-transfer</th>
+                        <th class="col-transfer" style="width: 140px;">n.transfxpda</th>
+                    </tr>
+                </thead>
+                <tbody id="tbody-artes-asignar"></tbody>
+            </table>
+        </div>
+
+    </section>
+
+    <!-- VISTA HABILITADO (Filtrado de Enumerado con estado_enumerado = OK ENM / OK S/ENM) -->
+    <section id="view-habilitado" class="view-section">
+        <div class="sub-nav" style="margin-bottom:10px;">
+            <button id="habilitado-btn-xprog" class="sub-tab active" onclick="filterHabilitado('X PROG', this)">
+                Por Programar <span class="kg-badge" id="habilitado-pds-xprog">[-]</span>
+            </button>
+            <button id="habilitado-btn-1t" class="sub-tab" onclick="filterHabilitado('PROG 1T', this)">
+                PROG 1T <span class="kg-badge" id="habilitado-pds-1t">[-]</span>
+            </button>
+            <button id="habilitado-btn-2t" class="sub-tab" onclick="filterHabilitado('PROG 2T', this)">
+                PROG 2T <span class="kg-badge" id="habilitado-pds-2t">[-]</span>
+            </button>
+            <button id="habilitado-btn-3t" class="sub-tab" onclick="filterHabilitado('PROG 3T', this)">
+                PROG 3T <span class="kg-badge" id="habilitado-pds-3t">[-]</span>
+            </button>
+            <button id="habilitado-btn-sdestino" class="sub-tab" onclick="filterHabilitado('S/DESTINO', this)"
+                style="border-color:#f59e0b; color:#92400e;">
+                PREP. PERO S/DESTINO <span class="kg-badge" id="habilitado-pds-sdestino">[-]</span>
+            </button>
+            <!-- Bot?n Programar Habilitado (oculto por defecto, aparece cuando hay filas seleccionadas) -->
+            <button id="btn-programar-habilitado" class="sub-tab" onclick="programarFilasHabilitado()"
+                style="display:none; background: var(--success); color: white; border: 1px solid var(--success); font-weight: 700;">
+                <i class="ph ph-check-circle"></i> Programar <span class="kg-badge"
+                    id="badge-programar-habilitado-count"
+                    style="background: rgba(255,255,255,0.3); color: white;">0</span>
+            </button>
+            <button id="btn-habilitado-notas" class="btn-habilitado-notas" onclick="abrirModalHabilitadoHoja3()"
+                style="display:none;" title="Notas" aria-label="Notas">
+                <i class="ph ph-notebook"></i>
+            </button>
+            <span id="habilitado-xhab-pill" class="xhabi-pill">xHabilitar: <strong
+                    id="habilitado-xhab-total">0pds</strong></span>
+            <button id="btn-habilitado-ingresos" class="btn-habilitado-ingresos"
+                onclick="toggleHabilitadoIngresosMode(this)" title="Ingresos (estado_habilitado = OK)"
+                aria-label="Ingresos habilitado">i</button>
+            <button id="btn-habilitado-devolucion" class="btn-habilitado-devolucion"
+                onclick="abrirModalDevolucionHabilitado()" title="Devolucion de cortes"
+                aria-label="Devolucion de cortes">DC</button>
+        </div>
+        <div id="habilitado-ingresos-filters" class="habilitado-ingresos-filters">
+            <label for="habilitado-ingresos-date-filter">F.ING.REAL:</label>
+            <select id="habilitado-ingresos-date-filter" onchange="onHabilitadoIngresosDateFilterChange(this.value)">
+                <option value="">Todos</option>
+            </select>
+            <span class="habilitado-ingresos-plant-label">PLANTA:</span>
+            <div id="habilitado-ingresos-plant-pills" class="habilitado-ingresos-plant-pills"></div>
+            <span id="habilitado-ingresos-pds-pill" class="habilitado-ingresos-pds-pill">PDS:
+                <strong>0pds</strong></span>
+        </div>
+        <div class="table-container">
+            <table id="table-habilitado">
+                <thead>
+                    <tr>
+                        <th id="th-habilitado-p" style="width: 25px; text-align:center;">P</th>
+                        <th style="width: 62px; text-align: center;">HOD</th>
+                        <th style="width: 62px; text-align: center;">F.ING.Prog</th>
+                        <th class="col-fhab" style="width: 68px; text-align: center;">F.HAB</th>
+                        <th style="width: 55px; text-align:center;">STATUS</th>
+                        <th style="width: 45px; text-align:center;">CLI</th>
+                        <th class="col-oc" style="width: 65px;">OC</th>
+                        <th class="col-color" style="width: 70px;">COLOR</th>
+                        <th style="width: 45px; text-align:center;">PDS</th>
+                        <th style="width: 55px;" class="col-pda">PDA</th>
+                        <th style="width: 55px;" class="col-cert">CERT</th>
+                        <th class="col-comp-otros" style="width: 70px; text-align:left;">COMP/OTROS</th>
+                        <th class="col-observaciones" style="width: 185px; text-align:left;">OBSERVACIONES</th>
+                        <th class="col-validacion" style="width: 44px; text-align:center;">VALIDA</th>
+                        <th class="col-h" style="width: 44px; text-align:center;">H</th>
+                        <th class="col-planta" style="width: 77px; text-align:center;">PLANTA</th>
+                        <th class="col-linea" style="width: 69px; text-align:center;">LINEA</th>
+                        <th class="col-hab" style="width: 69px; text-align:center;">HAB</th>
+                    </tr>
+                </thead>
+                <tbody id="tbody-habilitado"></tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- VISTA LAVADO (TABLA DETALLADA) -->
+    <section id="view-lavado" class="view-section">
+        <div class="sub-nav">
+            <!-- Solo un bot?n "Por Lavar" -->
+            <button id="btn-enlav" class="sub-tab active" onclick="filterLavado('EN LAV', this)">
+                Por Lavar <span class="kg-badge" id="kg-enlav">[-]</span>
+            </button>
+        </div>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th id="th-lavado-p" style="width: 30px;">P</th>
+                        <th style="width: 65px; text-align: center;">HOD</th>
+                        <th style="width: 65px; text-align: center;">F.ING.COST</th>
+                        <th style="width: 30px;">CLIENTE</th>
+
+                        <!-- AUMENTADO A 80px -->
+                        <th style="width: 80px;">OP-PTDA</th>
+
+                        <th style="width: 40px;">OC</th>
+                        <th style="width: 65px;">COLOR</th>
+                        <th style="width: 65px; text-align:right;">KG GIRADOS</th>
+                        <th style="width: 70px;">ART.</th>
+                        <th style="width: 65px;">TIPO CERT.</th>
+                        <th style="width: 100px;">Lavado</th>
+                        <th style="width: 85px;">RIB</th>
+                    </tr>
+                </thead>
+                <tbody id="tbody-lavado"></tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- VISTA CORTE (TABLA) -->
+    <section id="view-corte" class="view-section">
+        <div class="sub-nav" style="margin-bottom:10px;">
+            <button id="corte-btn-xprog" class="sub-tab active" onclick="filterCorte('X PROG', this)">
+                Por Programar <span class="kg-badge" id="corte-pds-xprog">[-]</span>
+            </button>
+            <button id="corte-btn-1t" class="sub-tab" onclick="filterCorte('PROG 1T', this)">
+                PROG 1T <span class="kg-badge" id="corte-pds-1t">[-]</span>
+            </button>
+            <button id="corte-btn-2t" class="sub-tab" onclick="filterCorte('PROG 2T', this)">
+                PROG 2T <span class="kg-badge" id="corte-pds-2t">[-]</span>
+            </button>
+            <button id="corte-btn-3t" class="sub-tab" onclick="filterCorte('PROG 3T', this)">
+                PROG 3T <span class="kg-badge" id="corte-pds-3t">[-]</span>
+            </button>
+            <button id="eqcorte-btn" class="sub-tab" onclick="abrirModalEQCorte()"
+                style="background: var(--primary-light); color: var(--primary); border: 1px solid var(--primary);">
+                <i class="ph ph-gear"></i> EQ_Corte
+            </button>
+            <!-- Bot?n Programar (oculto por defecto, aparece cuando hay filas listas) -->
+            <button id="btn-programar-corte" class="sub-tab" onclick="programarFilasCorte()"
+                style="display:none; background: var(--success); color: white; border: 1px solid var(--success); font-weight: 700;">
+                <i class="ph ph-check-circle"></i> Programar <span class="kg-badge" id="badge-programar-count"
+                    style="background: rgba(255,255,255,0.3); color: white;">0</span>
+            </button>
+            <!-- Bot?n de impresi?n para PROG 1T/2T/3T (oculto por defecto) -->
+            <button id="btn-print-corte-prog" class="btn-print-circle" onclick="printCorteProg()" style="display:none;"
+                title="Imprimir programaci?n de los 3 turnos">
+                <i class="ph ph-printer"></i>
+            </button>
+            <!-- Boton Nuevo corte para sub-tab Por Programar -->
+            <button id="btn-nuevo-corte" class="btn-new-corte-circle" onclick="abrirModalNuevoCorte()"
+                style="display:none;" title="Nuevo corte">
+                <i class="ph ph-plus"></i>
+            </button>
+            <!-- Filtros por RUTA a la derecha -->
+            <div class="sub-filters" id="corte-route-filters" style="display:flex;">
+                <label class="filter-item"><input type="checkbox" id="flt-normal"
+                        onchange="onRouteFilterChange('NORMAL', this.checked)"><span>Normal</span></label>
+            </div>
+        </div>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 18px;">RSV</th>
+                        <th id="th-corte-p" style="width: 30px; display:none;">P</th>
+                        <th style="width: 70px;">F. GIRADO</th>
+                        <th style="width: 65px; text-align: center;">HOD</th>
+                        <th style="width: 75px; text-align: center;">F.ING.COST</th>
+                        <th style="width: 40px;">CLIENTE</th>
+                        <th style="width: 50px;">RUTA</th>
+                        <th style="width: 60px;">OC</th>
+                        <th style="width: 80px;">COLOR</th>
+                        <th style="width: 80px;">OP-PTDA</th>
+                        <th style="width: 45px; text-align:center;">PDS</th>
+                        <th style="width: 60px;">PRENDA</th>
+                        <th style="width: 70px;">ART.</th>
+                        <th style="width: 70px;">TIPO CERT.</th>
+                        <th style="width: 72px;">RIB</th>
+                        <th style="width: 80px;">equipo_corte</th>
+                        <th style="width: 80px;">STATUS_CORTE</th>
+                        <th style="width: 72px;">estado_bloques</th>
+                        <th style="width: 72px;">estado_coll_tap</th>
+                </thead>
+                <tbody id="tbody-corte"></tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- CONTENEDOR OCULTO PARA IMPRESI?N DE CORTE PROG -->
+    <div id="print-corte-container"></div>
+
+    <!-- VISTA CORTE BLOQUES -->
+    <section id="view-corte-bloques" class="view-section">
+        <div class="sub-nav" style="margin-bottom:10px;">
+            <button id="corte-bloques-btn-xprog" class="sub-tab active" onclick="filterCorteBloques('X PROG', this)">
+                Por Programar <span class="kg-badge" id="corte-bloques-pds-xprog">[-]</span>
+            </button>
+            <button id="corte-bloques-btn-prog" class="sub-tab" onclick="filterCorteBloques('PROG', this)">
+                Programado <span class="kg-badge" id="corte-bloques-pds-prog">[-]</span>
+            </button>
+        </div>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th id="th-corte-bloques-p" style="width: 30px; display:none;">P</th>
+                        <th style="width: 65px; text-align: center;">HOD</th>
+                        <th style="width: 75px; text-align: center;">F.ING.COST</th>
+                        <th style="width: 40px;">CLIENTE</th>
+                        <th style="width: 50px;">RUTA</th>
+                        <th style="width: 60px;">OC</th>
+                        <th style="width: 80px;">COLOR</th>
+                        <th style="width: 80px;">OP-PTDA</th>
+                        <th style="width: 45px; text-align:center;">PDS</th>
+                        <th style="width: 60px;">PRENDA</th>
+                        <th style="width: 70px;">ART.</th>
+                        <th style="width: 70px;">TIPO CERT.</th>
+                        <!-- RIB removed -->
+                        <th style="width: 85px;">equipo_corte</th>
+                        <th style="width: 80px;">STATUS_CORTE</th>
+                        <th style="width: 80px;">BLOQUES?</th>
+                        <!-- COLL/TAP removed -->
+                        <th style="width: 120px;">ESTADO_BLOQS</th>
+                    </tr>
+                </thead>
+                <tbody id="tbody-corte-bloques"></tbody>
+            </table>
+        </div>
+    </section>
+
+</main>
+
+<script src="js/config.js"></script>
+<script src="js/utils/text.js"></script>
+<script src="js/api/appscript.js"></script>
+<script src="js/api/programa-service.js"></script>
+<script src="js/pages/index/shared/formatters.js"></script>
+<script src="js/pages/index/shared/normalizers.js"></script>
+<script src="js/pages/index/shared/tendido-state.js"></script>
+<script src="js/pages/index/shared/status.js"></script>
+<script src="js/pages/index/filters/route-filters.js"></script>
+<script src="js/pages/index/features/loading-progress.js"></script>
+<script src="js/pages/index/features/artes-estilo-filter.js"></script>
+<script src="js/pages/index/features/date-inputs.js"></script>
+<script src="js/pages/index.js"></script>
+<script src="js/pages/index/features/corte-propagation.js"></script>
+<script src="js/pages/index/features/corte-programming.js"></script>
+<script src="js/pages/index/features/bloqueo-programming.js"></script>
+<script src="js/pages/index/features/habilitado-programming.js"></script>
+<script src="js/pages/index/features/artes-assignment.js"></script>
+<script src="js/pages/index/core/columns.js"></script>
+<script src="js/pages/index/core/sorters.js"></script>
+<script src="js/pages/index/core/counters.js"></script>
+<script src="js/pages/index/core/update-row.js"></script>
+<script src="js/pages/index/shared/habilitado-helpers.js"></script>
+<script src="js/pages/index/shared/view-helpers.js"></script>
+<script src="js/pages/index/features/editing.js"></script>
+<script src="js/pages/index/features/habilitado-planta.js"></script>
+<script src="js/pages/index/features/habilitado-ingresos.js"></script>
+<script src="js/pages/index/features/habilitado-devolucion.js"></script>
+<script src="js/pages/index/features/habilitado-hoja3.js"></script>
+<script src="js/pages/index/core/row-factory.js"></script>
+<script src="js/pages/index/views/artes.js"></script>
+<script src="js/pages/index/views/corte-bloques.js"></script>
+<script src="js/pages/index/views/transfer.js"></script>
+<script src="js/pages/index/views/lavado.js"></script>
+<script src="js/pages/index/views/bloqueo.js"></script>
+<script src="js/pages/index/views/enumerado.js"></script>
+<script src="js/pages/index/views/corte-pzas.js"></script>
+<script src="js/pages/index/views/habilitado.js"></script>
+<script src="js/pages/index/core/app-shell.js"></script>
+<script src="js/pages/index/core/navigation.js"></script>
+<script src="js/pages/index/features/printing.js"></script>
+<script src="js/pages/index/exports/correo-almacen.js"></script>
+<script src="js/pages/index/filters/filter-indicators.js"></script>
+<script src="js/pages/index/filters/bloqueo-filters.js"></script>
+<script src="js/pages/index/filters/corte-filters.js"></script>
+<script src="js/pages/index/filters/lavado-filters.js"></script>
+<script src="js/pages/index/filters/corte-bloques-filters.js"></script>
+<script src="js/pages/index/filters/transfer-filters.js"></script>
+<script src="js/pages/index/filters/enumerado-filters.js"></script>
+<script src="js/pages/index/filters/artes-filters.js"></script>
+<script src="js/pages/index/filters/habilitado-filters.js"></script>
+<script src="js/pages/index/features/search.js"></script>
+
+<script src="js/pages/index-2.js"></script>
+
+<!-- MODAL CONFIRMACI?N ELIMINAR OC -->
+<div id="modal-delete-oc" class="modal-overlay" onclick="if(event.target === this) closeDeleteModal()">
+    <div class="modal-content" style="max-width:420px; width:42%;">
+        <div class="modal-header">
+            <div class="modal-title">Confirmar eliminaci?n</div>
+            <button class="modal-close" onclick="closeDeleteModal()">?</button>
+        </div>
+        <div style="padding: 8px 0 18px 0; color:var(--gray-700);">
+            <div id="modal-delete-oc-message" style="font-size:14px; font-weight:600; margin-bottom:8px;">?Estas seguro
+                de eliminar esta OC?</div>
+            <div style="font-size:12px; color:var(--gray-500);">La fila ser? eliminada permanentemente del sheet.</div>
+        </div>
+        <div class="modal-buttons">
+            <button class="btn-modal btn-limpiar" onclick="closeDeleteModal()">No</button>
+            <button class="btn-modal btn-guardar" onclick="confirmDeleteOC()">Si</button>
+        </div>
+    </div>
+</div>
+
+<script src="js/pages/index-3.js"></script>
+
+<!-- MEN? CONTEXTUAL DE FILTRO PARA TABLA HABILITADO -->
+<div id="habilitado-context-menu" class="context-menu">
+    <div style="padding: 12px 16px; font-weight: 600; border-bottom: 1px solid var(--gray-100);">
+        Filtrar por: <span id="habilitado-filter-field">Campo</span>
+    </div>
+    <div class="context-menu-input">
+        <input type="text" id="habilitado-filter-input" placeholder="Ingrese valor a filtrar..." autocomplete="off"
+            style="display: none;">
+        <select id="habilitado-filter-select"
+            style="display: none; width: 100%; padding: 8px; border: 1px solid var(--gray-300); border-radius: 4px; font-size: 12px; box-sizing: border-box;">
+            <option value="__HAB_SELECT__">-- Seleccione un valor --</option>
+        </select>
+    </div>
+    <div class="context-menu-buttons">
+        <button class="context-menu-btn cancel" onclick="hideHabilitadoContextMenu()">Cancelar</button>
+        <button class="context-menu-btn cancel" onclick="clearHabilitadoFilter()"
+            style="background: #ef4444; color: white;">Limpiar</button>
+        <button class="context-menu-btn apply" onclick="applyHabilitadoFilter()">Aplicar</button>
+    </div>
+</div>
+
+<!-- MEN? CONTEXTUAL DE FILTRO PARA TABLA BLOQUEO -->
+<div id="bloqueo-context-menu" class="context-menu">
+    <div style="padding: 12px 16px; font-weight: 600; border-bottom: 1px solid var(--gray-100);">
+        Filtrar por: <span id="bloqueo-filter-field">Campo</span>
+    </div>
+    <div class="context-menu-input">
+        <input type="text" id="bloqueo-filter-input" placeholder="Ingrese valor a filtrar..." autocomplete="off"
+            style="display: none;">
+        <select id="bloqueo-filter-select"
+            style="display: none; width: 100%; padding: 8px; border: 1px solid var(--gray-300); border-radius: 4px; font-size: 12px; box-sizing: border-box;">
+            <option value="">-- Seleccione un valor --</option>
+        </select>
+    </div>
+    <div class="context-menu-buttons">
+        <button class="context-menu-btn cancel" onclick="hideBloqueoContextMenu()">Cancelar</button>
+        <button class="context-menu-btn cancel" onclick="clearBloqueoFilter()"
+            style="background: #ef4444; color: white;">Limpiar</button>
+        <button class="context-menu-btn apply" onclick="applyBloqueoFilter()">Aplicar</button>
+    </div>
+</div>
+
+<!-- MEN? CONTEXTUAL DE FILTRO PARA TABLA CORTE -->
+<div id="corte-context-menu" class="context-menu">
+    <div style="padding: 12px 16px; font-weight: 600; border-bottom: 1px solid var(--gray-100);">
+        Filtrar por: <span id="corte-filter-field">Campo</span>
+        <span id="corte-filter-active-badge"
+            style="display:none; margin-left:8px; background:#f59e0b; color:#1e293b; padding:2px 6px; border-radius:4px; font-size:10px;">ACTIVO</span>
+    </div>
+    <div class="context-menu-input">
+        <input type="text" id="corte-filter-input" placeholder="Ingrese valor a filtrar..." autocomplete="off"
+            style="display: none;">
+        <select id="corte-filter-select"
+            style="display: none; width: 100%; padding: 8px; border: 1px solid var(--gray-300); border-radius: 4px; font-size: 12px; box-sizing: border-box;">
+            <option value="">-- Seleccione un valor --</option>
+        </select>
+    </div>
+    <div class="context-menu-buttons">
+        <button class="context-menu-btn cancel" onclick="hideCorteContextMenu()">Cancelar</button>
+        <button class="context-menu-btn cancel" onclick="clearCorteFilter()"
+            style="background: #ef4444; color: white;">Limpiar Todo</button>
+        <button class="context-menu-btn apply" onclick="applyCorteFilter()">Aplicar</button>
+    </div>
+</div>
+
+<!-- MEN? CONTEXTUAL DE FILTRO PARA TABLA ENUMERADO -->
+<div id="enumerado-context-menu" class="context-menu">
+    <div style="padding: 12px 16px; font-weight: 600; border-bottom: 1px solid var(--gray-100);">
+        Filtrar por: <span id="enumerado-filter-field">Campo</span>
+    </div>
+    <div class="context-menu-input">
+        <input type="text" id="enumerado-filter-input" placeholder="Ingrese valor a filtrar..." autocomplete="off"
+            style="display: none;">
+        <select id="enumerado-filter-select"
+            style="display: none; width: 100%; padding: 8px; border: 1px solid var(--gray-300); border-radius: 4px; font-size: 12px; box-sizing: border-box;">
+            <option value="">-- Seleccione un valor --</option>
+        </select>
+    </div>
+    <div class="context-menu-buttons">
+        <button class="context-menu-btn cancel" onclick="hideEnumeradoContextMenu()">Cancelar</button>
+        <button class="context-menu-btn cancel" onclick="clearEnumeradoFilter()"
+            style="background: #ef4444; color: white;">Limpiar</button>
+        <button class="context-menu-btn apply" onclick="applyEnumeradoFilter()">Aplicar</button>
+    </div>
+</div>
+
+<!-- MENU CONTEXTUAL PARA OC EN CORTE PZAS -->
+<div id="corte-oc-context-menu" class="context-menu" style="width:240px; min-width:240px;">
+    <div class="context-menu-item" onclick="abrirModalEquipoCorteOCDesdeMenu()">Cambiar de equipo de corte</div>
+</div>
+
+<!-- MEN? CONTEXTUAL DE FILTRO PARA TABLA LAVADO -->
+<div id="lavado-context-menu" class="context-menu">
+    <div style="padding: 12px 16px; font-weight: 600; border-bottom: 1px solid var(--gray-100);">
+        Filtrar por: <span id="lavado-filter-field">Campo</span>
+    </div>
+    <div class="context-menu-input">
+        <input type="text" id="lavado-filter-input" placeholder="Ingrese valor a filtrar..." autocomplete="off"
+            style="display: none;">
+        <select id="lavado-filter-select"
+            style="display: none; width: 100%; padding: 8px; border: 1px solid var(--gray-300); border-radius: 4px; font-size: 12px; box-sizing: border-box;">
+            <option value="">-- Seleccione un valor --</option>
+        </select>
+    </div>
+    <div class="context-menu-buttons">
+        <button class="context-menu-btn cancel" onclick="hideLavadoContextMenu()">Cancelar</button>
+        <button class="context-menu-btn cancel" onclick="clearLavadoFilter()"
+            style="background: #ef4444; color: white;">Limpiar</button>
+        <button class="context-menu-btn apply" onclick="applyLavadoFilter()">Aplicar</button>
+    </div>
+</div>
+
+<!-- MEN? CONTEXTUAL DE FILTRO PARA TABLA CORTE BLOQUES -->
+<div id="corte-bloques-context-menu" class="context-menu">
+    <div style="padding: 12px 16px; font-weight: 600; border-bottom: 1px solid var(--gray-100);">
+        Filtrar por: <span id="corte-bloques-filter-field">Campo</span>
+    </div>
+    <div class="context-menu-input">
+        <input type="text" id="corte-bloques-filter-input" placeholder="Ingrese valor a filtrar..." autocomplete="off"
+            style="display: none;">
+        <select id="corte-bloques-filter-select"
+            style="display: none; width: 100%; padding: 8px; border: 1px solid var(--gray-300); border-radius: 4px; font-size: 12px; box-sizing: border-box;">
+            <option value="">-- Seleccione un valor --</option>
+        </select>
+    </div>
+    <div class="context-menu-buttons">
+        <button class="context-menu-btn cancel" onclick="hideCorteBloquesContextMenu()">Cancelar</button>
+        <button class="context-menu-btn cancel" onclick="clearCorteBloquesFilter()"
+            style="background: #ef4444; color: white;">Limpiar</button>
+        <button class="context-menu-btn apply" onclick="applyCorteBloquesFilter()">Aplicar</button>
+    </div>
+</div>
+
+<!-- MEN? CONTEXTUAL DE FILTRO PARA TABLA TRANSFER -->
+<div id="transfer-context-menu" class="context-menu">
+    <div style="padding: 12px 16px; font-weight: 600; border-bottom: 1px solid var(--gray-100);">
+        Filtrar por: <span id="transfer-filter-field">Campo</span>
+    </div>
+    <div class="context-menu-input">
+        <input type="text" id="transfer-filter-input" placeholder="Ingrese valor a filtrar..." autocomplete="off"
+            style="display: none;">
+        <select id="transfer-filter-select"
+            style="display: none; width: 100%; padding: 8px; border: 1px solid var(--gray-300); border-radius: 4px; font-size: 12px; box-sizing: border-box;">
+            <option value="">-- Seleccione un valor --</option>
+        </select>
+    </div>
+    <div class="context-menu-buttons">
+        <button class="context-menu-btn cancel" onclick="hideTransferContextMenu()">Cancelar</button>
+        <button class="context-menu-btn cancel" onclick="clearTransferFilter()"
+            style="background: #ef4444; color: white;">Limpiar</button>
+        <button class="context-menu-btn apply" onclick="applyTransferFilter()">Aplicar</button>
+    </div>
+</div>
+
+<!-- MEN? CONTEXTUAL DE FILTRO PARA TABLA ARTES -->
+<div id="artes-context-menu" class="context-menu">
+    <div style="padding: 12px 16px; font-weight: 600; border-bottom: 1px solid var(--gray-100);">
+        Filtrar por: <span id="artes-filter-field">Campo</span>
+    </div>
+    <div class="context-menu-input">
+        <input type="text" id="artes-filter-input" placeholder="Ingrese valor a filtrar..." autocomplete="off"
+            style="display: none;">
+        <select id="artes-filter-select"
+            style="display: none; width: 100%; padding: 8px; border: 1px solid var(--gray-300); border-radius: 4px; font-size: 12px; box-sizing: border-box;">
+            <option value="">-- Seleccione un valor --</option>
+        </select>
+    </div>
+    <div class="context-menu-buttons">
+        <button class="context-menu-btn cancel" onclick="hideArtesContextMenu()">Cancelar</button>
+        <button class="context-menu-btn cancel" onclick="clearArtesFilter()"
+            style="background: #ef4444; color: white;">Limpiar</button>
+        <button class="context-menu-btn apply" onclick="applyArtesFilter()">Aplicar</button>
+    </div>
+</div>
+
+</body>
+
+</html>

@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>RIB Status - Corte Pzas</title>
+    <link rel="stylesheet" href="css/pages/rib-status.css">
+</head>
+<body>
+    <div id="loader">
+        <div class="spinner"></div>
+        <p style="margin:10px 0 0;font-size:13px;color:#334155;">Cargando datos...</p>
+    </div>
+
+    <div id="error-screen">
+        <div class="error-box">
+            <h3>Error de carga</h3>
+            <p id="error-details">No se pudo cargar la informacion.</p>
+            <button class="btn btn-primary" type="button" onclick="reloadData()">Reintentar</button>
+        </div>
+    </div>
+
+    <div class="page">
+        <div class="topbar">
+            <div class="title-wrap">
+                <h1>RIB Status</h1>
+                <p>OC con estado_rib = NO PASO o LAV(rep).</p>
+            </div>
+            <div class="actions">
+                <span id="summary-pill" class="stat-pill">Filas: 0 | PDS: 0</span>
+                <button class="btn btn-primary" type="button" onclick="reloadData()">Refrescar</button>
+                <a class="btn" href="index.html">Volver a index</a>
+            </div>
+        </div>
+
+        <div id="status-msg"></div>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width:55px;">RSV</th>
+                        <th style="width:75px;">F. GIRADO</th>
+                        <th style="width:75px;">HOD</th>
+                        <th style="width:80px;">F.ING.COST</th>
+                        <th style="width:78px;">STATUS</th>
+                        <th style="width:52px;">CLIENTE</th>
+                        <th style="width:55px;">RUTA</th>
+                        <th style="width:70px;">OC</th>
+                        <th style="width:88px;">COLOR</th>
+                        <th style="width:90px;">OP-PTDA</th>
+                        <th style="width:62px;">PDS</th>
+                        <th style="width:72px;">PRENDA</th>
+                        <th style="width:88px;">ART.</th>
+                        <th style="width:75px;">TIPO CERT.</th>
+                        <th style="width:88px;">RIB</th>
+                    </tr>
+                </thead>
+                <tbody id="tbody-rib-status"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script src="js/config.js"></script>
+    <script src="js/utils/text.js"></script>
+    <script src="js/api/google-sheets.js"></script>
+    <script src="js/api/appscript.js"></script>
+    <script src="js/api/programa-service.js"></script>
+    <script src="js/pages/rib-status.js"></script>
+</body>
+</html>

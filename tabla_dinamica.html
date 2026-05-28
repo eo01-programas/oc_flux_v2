@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tabla Dinámica - Flujo OC</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
+    <link rel="stylesheet" href="css/pages/tabla-dinamica.css">
+</head>
+<body>
+
+    <!-- LOADER -->
+    <div id="loader">
+        <div class="spinner"></div>
+        <p>Cargando datos desde Google Sheets…</p>
+    </div>
+
+    <!-- ERROR -->
+    <div id="error-screen">
+        <i class="ph ph-warning-circle"></i>
+        <h3>Error al cargar los datos</h3>
+        <p id="error-details"></p>
+        <button class="btn-action btn-primary" onclick="location.reload()">Reintentar</button>
+    </div>
+
+    <!-- MODAL F. DESPACHO -->
+    <div class="modal-overlay" id="modal-fdespacho" onclick="if(event.target===this)closeDateModal()">
+        <div class="modal-box">
+            <h3><i class="ph ph-calendar"></i> Editar F. Despacho</h3>
+            <div class="modal-info">
+                <div class="info-item"><span class="info-label">OC:</span><span class="info-value" id="modal-oc-info">-</span></div>
+                <div class="info-item"><span class="info-label">Cliente:</span><span class="info-value" id="modal-cliente-info">-</span></div>
+                <div class="info-item"><span class="info-label">Color:</span><span class="info-value" id="modal-color-info">-</span></div>
+            </div>
+            <input type="date" id="modal-date-input">
+            <div class="modal-actions">
+                <button class="btn-action btn-outline" onclick="closeDateModal()">Cancelar</button>
+                <button class="btn-action btn-primary" id="modal-save-btn" onclick="saveFDespacho()">
+                    <i class="ph ph-floppy-disk"></i> Guardar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL F.ING.COST -->
+    <div class="modal-overlay" id="modal-fingcost" onclick="if(event.target===this)closeIngCostModal()">
+        <div class="modal-box">
+            <h3><i class="ph ph-calendar"></i> Editar F.ING.COST</h3>
+            <div class="modal-info">
+                <div class="info-item"><span class="info-label">OC:</span><span class="info-value" id="modal-oc-info-ingcost">-</span></div>
+                <div class="info-item"><span class="info-label">Cliente:</span><span class="info-value" id="modal-cliente-info-ingcost">-</span></div>
+                <div class="info-item"><span class="info-label">Color:</span><span class="info-value" id="modal-color-info-ingcost">-</span></div>
+            </div>
+            <input type="date" id="modal-ingcost-input">
+            <div class="modal-actions">
+                <button class="btn-action btn-outline" onclick="closeIngCostModal()">Cancelar</button>
+                <button class="btn-action btn-primary" id="modal-ingcost-save-btn" onclick="saveFIngCost()">
+                    <i class="ph ph-floppy-disk"></i> Guardar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- HEADER -->
+    <header>
+        <div class="brand">
+            <i class="ph ph-table"></i>
+            Tabla Dinámica
+            <span class="badge" id="count-total" style="font-size:11px;">0</span>
+        </div>
+
+        <div class="header-filters">
+            <input type="text" id="search-input" placeholder="Buscar…" oninput="applyFilters()">
+
+            <select id="filter-status" onchange="applyFilters()">
+                <option value="">Status: Todos</option>
+                <option value="X PEDIR">x pedir</option>
+                <option value="X BLOQ">x bloq</option>
+                <option value="X LAVAR">x lavar</option>
+                <option value="X CORTAR">x cortar</option>
+                <option value="PROC CORTE">Proc Corte</option>
+                <option value="X ENM">x enm</option>
+                <option value="X HAB">x Hab</option>
+            </select>
+
+            <select id="filter-ruta" onchange="applyFilters()">
+                <option value="">Ruta: Todas</option>
+                <option value="ACABADA">Acabada</option>
+                <option value="LAVADA">Lavada</option>
+            </select>
+
+            <button class="btn-action btn-outline" onclick="clearFilters()" title="Limpiar filtros" style="padding:3px 8px;">
+                <i class="ph ph-funnel-x"></i>
+            </button>
+
+            <span style="border-left:1px solid var(--gray-300); height:20px; margin:0 4px;"></span>
+
+            <div class="summary-chip">
+                <span class="chip-label">x Cortar:</span>
+                <span class="chip-value danger" id="summary-xcortar">0</span>
+            </div>
+            <div class="summary-chip">
+                <span class="chip-label">x Ingresar:</span>
+                <span class="chip-value warning" id="summary-xingresar">0</span>
+            </div>
+        </div>
+
+        <div class="header-actions">
+            <button class="btn-action btn-outline" onclick="exportToExcel()" title="Exportar a Excel">
+                <i class="ph ph-file-xls"></i> Excel
+            </button>
+            <button class="btn-action btn-outline" onclick="location.reload()" title="Recargar datos">
+                <i class="ph ph-arrows-clockwise"></i>
+            </button>
+            <a href="stock.html" title="Volver a Stock" style="text-decoration:none">
+                <button class="btn-action btn-outline" type="button">
+                    <i class="ph ph-arrow-left"></i>
+                </button>
+            </a>
+        </div>
+    </header>
+
+    <!-- MAIN -->
+    <main>
+        <!-- CHIP FILTERS: Año, Mes y Cliente -->
+        <div class="chip-filters-row">
+            <div class="chip-filter-group" id="chip-year-bar">
+                <span class="chip-group-label">Año:</span>
+                <button class="chip-btn chip-sfecha" onclick="toggleSinFecha(this)" data-value="sfecha" id="btn-sfecha">S/Fecha</button>
+            </div>
+            <div class="chip-filter-group" id="chip-month-bar">
+                <span class="chip-group-label">Mes:</span>
+            </div>
+            <div class="chip-filter-group" id="chip-fecha-group">
+                <span class="chip-group-label">Fecha:</span>
+                <select class="fecha-dropdown" id="filter-fecha" onchange="selectFecha(this.value)">
+                    <option value="">Todas</option>
+                </select>
+            </div>
+            <div class="chip-filter-group" id="chip-cliente-bar">
+                <span class="chip-group-label">Cliente:</span>
+                <button class="chip-btn active" onclick="selectCliente(this, '')" data-value="">Todos</button>
+            </div>
+        </div>
+
+        <!-- TABLE -->
+        <div class="table-wrapper">
+            <table id="main-table">
+                <thead>
+                    <tr>
+                        <th data-col="fDespacho" onclick="sortTable('fDespacho')">F. DESPACHO <span class="sort-icon">⇅</span></th>
+                        <th data-col="fGirado" onclick="sortTable('fGirado')">F. GIRADO <span class="sort-icon">⇅</span></th>
+                        <th data-col="diasGirado" onclick="sortTable('diasGirado')" style="text-align:right;">#D <span class="sort-icon">⇅</span></th>
+                        <th data-col="fCorte" onclick="sortTable('fCorte')">FECHA CORTE <span class="sort-icon">⇅</span></th>
+                        <th data-col="fIngCost" onclick="sortTable('fIngCost')">F.ING.COST <span class="sort-icon">⇅</span></th>
+                        <th data-col="rsv" onclick="sortTable('rsv')">RSV <span class="sort-icon">⇅</span></th>
+                        <th data-col="cliente" onclick="sortTable('cliente')">CLIENTE <span class="sort-icon">⇅</span></th>
+                        <th data-col="estilo" onclick="sortTable('estilo')">ESTILO <span class="sort-icon">⇅</span></th>
+                        <th data-col="oc" onclick="sortTable('oc')">OC <span class="sort-icon">⇅</span></th>
+                        <th data-col="color" onclick="sortTable('color')">COLOR <span class="sort-icon">⇅</span></th>
+                        <th data-col="rutaTela" onclick="sortTable('rutaTela')">RUTA TELA <span class="sort-icon">⇅</span></th>
+                        <th data-col="rib" onclick="sortTable('rib')">RIB <span class="sort-icon">⇅</span></th>
+                        <th data-col="status" onclick="sortTable('status')">STATUS <span class="sort-icon">⇅</span></th>
+                        <th data-col="planta" onclick="sortTable('planta')">PLANTA <span class="sort-icon">⇅</span></th>
+                        <th data-col="linea" onclick="sortTable('linea')">LINEA <span class="sort-icon">⇅</span></th>
+                        <th data-col="qtyXCortar" onclick="sortTable('qtyXCortar')" style="text-align:right;">QTY xCO <span class="sort-icon">⇅</span></th>
+                        <th data-col="qtyXIngresar" onclick="sortTable('qtyXIngresar')" style="text-align:right;">QTY xING <span class="sort-icon">⇅</span></th>
+                    </tr>
+                </thead>
+                <tbody id="main-tbody"></tbody>
+            </table>
+        </div>
+    </main>
+
+    <script src="js/config.js"></script>
+    <script src="js/utils/text.js"></script>
+    <script src="js/api/google-sheets.js"></script>
+    <script src="js/api/appscript.js"></script>
+    <script src="js/api/programa-service.js"></script>
+    <script src="js/pages/tabla-dinamica.js"></script>
+</body>
+</html>
+
+

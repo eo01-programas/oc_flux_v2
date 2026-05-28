@@ -1,0 +1,14 @@
+
+    body{font-family:"Segoe UI",Tahoma,Geneva,Verdana,sans-serif;background:#f3f4f6}
+    .card{background:#fff;border-radius:.375rem;box-shadow:0 1px 2px 0 rgba(0,0,0,.05);padding:1rem}
+    .kpi-card{display:flex;flex-direction:column;height:100%;padding:.75rem}
+    .kpi-card-header{min-height:2.4rem}
+    .kpi-card-main{min-height:4.8rem}
+    .kpi-card-foot{min-height:2.3rem;border-top:1px solid #f3f4f6;padding-top:.35rem}
+    .kpi-card .text-2xl{line-height:1}
+    .kpi-card .rounded{padding-top:.35rem;padding-bottom:.35rem}
+    ::-webkit-scrollbar{width:6px;height:6px}
+    ::-webkit-scrollbar-track{background:#f1f1f1}
+    ::-webkit-scrollbar-thumb{background:#c1c1c1;border-radius:4px}
+    ::-webkit-scrollbar-thumb:hover{background:#a8a8a8}
+  

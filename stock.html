@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Stock - Graficas</title>
+    <link rel="stylesheet" href="css/pages/stock.css">
+</head>
+<body>
+    <div class="header-row">
+        <h1 style="margin:0">STOCK</h1>
+        <div id="loader" style="display:flex;align-items:center;gap:8px"><div class="spinner"></div><span style="font-size:12px">Cargando...</span></div>
+        <button id="btn-refresh" class="btn-refresh-circle" onclick="reloadData()" title="Refrescar datos">
+            <svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-2.63-6.36"/><polyline points="21 3 21 9 15 9"/></svg>
+        </button>
+        <div class="switch switch-active" title="Ver Prendas">
+            <input id="chk-pds" type="checkbox" checked onchange="toggleUnit('pds')">
+            <label for="chk-pds">Prendas</label>
+        </div>
+        <div class="switch" title="Ver KG">
+            <input id="chk-kg" type="checkbox" onchange="toggleUnit('kg')">
+            <label for="chk-kg">kg</label>
+        </div>
+        <a href="tabla_dinamica.html" style="margin-left:auto"><button type="button">Tabla dinámica</button></a>
+        <a href="index.html" aria-label="volver a inicio"><button id="btn-volver" type="button">volver</button></a>
+    </div>
+
+    <div class="main-columns">
+    <div class="col-left">
+    <div id="chart-wrap">
+        <div id="chart-title" class="chart-title">Stock de prendas Corte/Habilitado</div>
+        <div id="no-data" style="display:none">No hay datos que cumplan el filtro.</div>
+        <div id="chart" class="bars" aria-live="polite">
+            <div class="legend-inside" id="legend">
+                <div class="legend-item"><span class="legend-swatch sw-prog" aria-hidden="true"></span><span>PROG</span></div>
+                <div class="legend-item"><span class="legend-swatch sw-xprog" aria-hidden="true"></span><span>X PROG</span></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="chart2-wrap">
+        <div id="chart2-title" class="chart-title" style="margin-top:0">Desglose CORTE PZAS por Ruta Tela (Prendas)</div>
+        <div id="chart2" class="hbar-container" aria-live="polite">
+            <div class="legend-inside">
+                <div class="legend-item"><span class="legend-swatch sw-lavada" aria-hidden="true"></span><span>LAVADA</span></div>
+                <div class="legend-item"><span class="legend-swatch sw-acabada" aria-hidden="true"></span><span>ACABADA</span></div>
+            </div>
+        </div>
+    </div>
+    </div><!-- col-left -->
+    <div class="col-right">
+    <div id="chart3-wrap">
+        <div id="chart3-title" class="chart-title">Stock por Mes de Despacho (Prendas)</div>
+        <div id="chart3" class="chart3-container" aria-live="polite">
+            <div class="legend-inside">
+                <div class="legend-item"><span class="legend-swatch sw-prog" aria-hidden="true"></span><span>PROG</span></div>
+                <div class="legend-item"><span class="legend-swatch sw-xprog" aria-hidden="true"></span><span>X PROG</span></div>
+            </div>
+        </div>
+    </div>
+    </div><!-- col-right -->
+    </div><!-- main-columns -->
+
+<script src="js/config.js"></script>
+<script src="js/utils/text.js"></script>
+<script src="js/api/google-sheets.js"></script>
+<script src="js/pages/stock.js"></script>
+</body>
+</html>
+
+

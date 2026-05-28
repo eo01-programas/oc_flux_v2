@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OC sin #Molde</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/pages/moldes.css">
+</head>
+    <body>
+    <header>
+        <div class="header-main">
+            <div class="brand">OC sin #Molde</div>
+            <div class="stats-bar header-stats">
+                <span>Total registros: <strong id="stat-total">0</strong></span>
+                <span>Pendientes de asignar: <strong id="stat-pendientes">0</strong></span>
+                <span>Total PDS: <strong id="stat-pds">0</strong></span>
+                <span>Total KG GIRADOS: <strong id="stat-kg">0</strong></span>
+            </div>
+        </div>
+        <div class="header-controls">
+            <div id="loader" class="loader" style="display: none;">
+                <div class="spinner"></div>
+                <span>Cargando datos...</span>
+            </div>
+            <button onclick="enviarCorreoOCSinMolde()">Correo</button>
+            <button class="btn-secondary" onclick="window.location.href='index.html'">&larr; Volver</button>
+            <button onclick="reloadData()">Recargar</button>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="table-wrapper">
+            <div class="table-scroll">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>F. GIRADO</th>
+                            <th>F.ING.COST</th>
+                            <th>HOD</th>
+                            <th>CLIENTE</th>
+                            <th>RUTA</th>
+                            <th style="background-color: #d1fae5;">OC</th>
+                            <th>COLOR</th>
+                            <th>OP-PTDA</th>
+                            <th class="article-head">ARTÍCULO</th>
+                            <th>KG GIRADOS</th>
+                            <th>PDS</th>
+                            <th style="min-width: 120px;">#MOLDE</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tbody-moldes">
+                        <tr><td colspan="12" class="no-data">Cargando datos...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="pagination" id="pagination" style="display:none;">
+            <button id="btn-prev" onclick="previousPage()" disabled>&larr; Anterior</button>
+            <span class="page-info">
+                PÃ¡gina <span id="page-current">1</span> de <span id="page-total">1</span> 
+                | Mostrando <span id="page-shown">0</span> de <span id="page-all">0</span> registros
+            </span>
+            <button id="btn-next" onclick="nextPage()" disabled>Siguiente &rarr;</button>
+        </div>
+    </div>
+
+    <!-- Toast notification -->
+    <div id="toast" class="toast"></div>
+
+    <!-- Input oculto para carga de Excel -->
+    <input type="file" id="excelFileInput" accept=".xls,.xlsx" style="display:none;" onchange="procesarExcelMoldes(this)">
+
+    <!-- BotÃ³n circular flotante -->
+    <button class="fab-excel" id="btnFabExcel" onclick="document.getElementById('excelFileInput').click()" title="Cargar NRO. MOLDE desde Excel">
+        <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+    </button>
+
+    <!-- Modal resumen -->
+    <div id="excelModalOverlay" class="excel-modal-overlay">
+        <div class="excel-modal">
+            <h2 id="excelModalTitle">Resultado de carga</h2>
+            <div id="excelModalBody"></div>
+            <button class="btn-close-modal" onclick="cerrarModalExcel()">Cerrar</button>
+        </div>
+    </div>
+
+    <script src="js/config.js"></script>
+    <script src="js/utils/text.js"></script>
+    <script src="js/api/google-sheets.js"></script>
+    <script src="js/api/appscript.js"></script>
+    <script src="js/api/programa-service.js"></script>
+    <script src="js/pages/moldes.js"></script>
+</body>
+</html>
+
+

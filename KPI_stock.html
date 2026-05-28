@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>KPI Stock</title>
+  <link rel="stylesheet" href="css/pages/kpi-stock.css">
+</head>
+<body>
+  <div class="page">
+    <div class="header">
+      <div class="title-block">
+        <h1>KPI Stock</h1>
+      </div>
+      <div id="loader"><div class="spinner"></div><span>Cargando datos...</span></div>
+      <div class="toolbar">
+        <button id="btn-refresh" class="btn-circle" type="button" onclick="reloadData()" title="Refrescar datos">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a9 9 0 1 1-2.63-6.36"></path><polyline points="21 3 21 9 15 9"></polyline></svg>
+        </button>
+        <a class="link-btn primary" href="stock.html">Volver a Stock</a>
+        <a class="link-btn" href="tabla_dinamica.html">Tabla dinamica</a>
+      </div>
+    </div>
+
+    <div class="grid">
+      <section class="panel">
+        <div class="panel-head">
+          <div>
+            <h2 id="panel1-title" class="panel-title">WIP total diario - Prendas</h2>
+            <div class="panel-subtitle">BLOQ + LAV + C/PZAS + C/BLOQ + ENM + HAB</div>
+          </div>
+          <div class="panel-status">
+            <div id="chip-trend" class="chip"><b>Tendencia</b><span>-</span></div>
+            <div id="chip-range" class="chip"><b>Rango</b><span>-</span></div>
+          </div>
+        </div>
+        <div class="panel-body">
+          <div class="kpi-strip">
+            <div class="kpi-card"><div class="kpi-row"><div class="kpi-label">Ult.valor</div><div id="kpi-last" class="kpi-value">-</div></div><div id="kpi-last-meta" class="kpi-meta"></div></div>
+            <div class="kpi-card"><div class="kpi-row"><div class="kpi-label">Prom</div><div id="kpi-avg" class="kpi-value">-</div></div><div class="kpi-meta"></div></div>
+            <div class="kpi-card"><div class="kpi-row"><div class="kpi-label">Pico</div><div id="kpi-peak" class="kpi-value">-</div></div><div id="kpi-peak-meta" class="kpi-meta"></div></div>
+            <div class="kpi-card"><div class="kpi-row"><div class="kpi-label">Var</div><div id="kpi-delta" class="kpi-value">-</div></div><div id="kpi-delta-meta" class="kpi-meta"></div></div>
+          </div>
+          <div class="chart-wrap">
+            <div id="chart1">
+              <svg id="svg-chart" viewBox="0 0 1000 210" width="100%" height="210" preserveAspectRatio="none" aria-label="Grafico WIP total diario"></svg>
+            </div>
+          </div>
+          <div id="error-box"></div>
+        </div>
+      </section>
+      <section class="panel">
+        <div class="panel-head">
+          <div>
+            <h2 id="panel2-title" class="panel-title">Participacion por proceso - ult.fecha</h2>
+            <div id="panel2-subtitle" class="panel-subtitle">Participacion del ultimo dia + variabilidad del stock por proceso</div>
+          </div>
+          <div class="panel-status">
+            <div id="panel2-badges" class="process-badge good"><strong>Proceso lider</strong><span>-</span></div>
+            <div id="panel2-total" class="process-badge"><strong>Total</strong><span>-</span></div>
+          </div>
+        </div>
+        <div class="process-wrap">
+          <div class="process-head">
+            <div>
+              <div id="panel2-date" class="process-title"></div>
+              <div id="panel2-meta" class="process-subtitle"></div>
+            </div>
+          </div>
+          <div id="process-list" class="process-list" aria-live="polite">
+            <div class="process-empty">Cuando cargue la fecha mas reciente, aqui veremos cada proceso con su participacion y su CV para leer volumen y estabilidad en la misma fila.</div>
+          </div>
+        </div>
+      </section>
+      <section class="panel">
+        <div class="panel-head">
+          <div>
+            <h2 id="panel3-title" class="panel-title">Variacion semanal por proceso</h2>
+            <div id="panel3-subtitle" class="panel-subtitle">Ultimos 7 dias vs 7 dias anteriores; derecha = crecimiento, izquierda = drenaje</div>
+          </div>
+        </div>
+        <div class="weekly-wrap">
+          <div class="weekly-head">
+            <div>
+              <div id="panel3-window" class="weekly-title"></div>
+              <div id="panel3-meta" class="weekly-subtitle"></div>
+            </div>
+          </div>
+          <div id="weekly-list" class="weekly-list" aria-live="polite">
+            <div class="weekly-empty">Aqui veremos las barras de variacion semanal. Las barras a la derecha muestran crecimiento y las que van a la izquierda muestran drenaje.</div>
+          </div>
+        </div>
+      </section>
+            <section class="panel">
+        <div class="panel-head">
+          <div>
+            <h2 id="panel4-title" class="panel-title">Variabilidad por proceso</h2>
+            <div id="panel4-subtitle" class="panel-subtitle">Dispersi&oacute;n: participaci&oacute;n del &uacute;ltimo d&iacute;a vs CV del stock diario</div>
+          </div>
+          <div id="panel4-badges" class="var-badges">
+            <div class="scatter-chip blue"><strong>X</strong><span>Participaci&oacute;n</span></div>
+            <div class="scatter-chip amber"><strong>Y</strong><span>CV</span></div>
+            <div class="scatter-chip red"><strong>Rojo</strong><span>m&aacute;s inestable</span></div>
+          </div>
+        </div>
+        <div class="var-wrap">
+          <div class="var-head">
+            <div>
+              <div id="panel4-window" class="var-title"></div>
+              <div id="panel4-meta" class="var-subtitle"></div>
+            </div>
+          </div>
+          <div id="var-list" class="scatter-panel" aria-live="polite">
+            <div class="var-empty">Aqu&iacute; veremos una dispersi&oacute;n por proceso. M&aacute;s a la derecha = m&aacute;s participaci&oacute;n; m&aacute;s arriba = m&aacute;s CV.</div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+  <script src="js/config.js"></script>
+  <script src="js/utils/text.js"></script>
+  <script src="js/api/google-sheets.js"></script>
+  <script src="js/pages/kpi-stock.js"></script>
+</body>
+</html>
