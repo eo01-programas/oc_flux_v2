@@ -449,18 +449,28 @@
         const normalizar = (valor) => {
             return valor.toString().trim().replace(/^0+/, '') || '0';
         };
+
+        const construirClaveDuplicado = ({ op, corte, opTela, partida }) => {
+            const opNormalizado = normalizar(op || '');
+            const corteNormalizado = normalizar(corte || '');
+            const opTelaNormalizado = normalizar(opTela || '');
+            const partidaNormalizada = normalizar(partida || '');
+
+            return `${opNormalizado}|${corteNormalizado}|${opTelaNormalizado}|${partidaNormalizada}`.toUpperCase();
+        };
         
-        // Crear Map con OP+CORTE como clave y los estados como valor
+        // Crear Map con OP+CORTE+OP TELA+PARTIDA como clave y los estados como valor
         const registrosExistentes = new Map();
         
         datosExistentes.forEach(row => {
-            // Normalizar OP y CORTE antes de concatenar
-            const op = normalizar(row.op || '');
-            const corte = normalizar(row.corte || '');
-            const concatenado = `${op}|${corte}`.toUpperCase();
+            const concatenado = construirClaveDuplicado({
+                op: row.op,
+                corte: row.corte,
+                opTela: row.op_tela || row.opTela,
+                partida: row.partida
+            });
             
-            // CAMBIO: Agregar TODOS los registros al Map (sin filtrar por estados)
-            // Para que cualquier OP+CORTE existente se considere duplicado
+            // Cualquier coincidencia exacta en OP+CORTE+OP TELA+PARTIDA se considera duplicado
             registrosExistentes.set(concatenado, {
                 estado_bloqueo: row.estado_bloqueo || '',
                 estado_lavada: row.estado_lavada || '',
@@ -469,7 +479,7 @@
         });
         
         console.log('Registros existentes con estados llenos:', registrosExistentes.size);
-        console.log('Primeros 5 concatenados:', Array.from(registrosExistentes.keys()).slice(0, 5));
+        console.log('Primeras 5 claves:', Array.from(registrosExistentes.keys()).slice(0, 5));
 
         // Filtrar datos nuevos
         // Nota: además de comparar contra el sheet, también evitamos
@@ -483,11 +493,16 @@
             // ["F. DESPACHO", "F. GIRADO", "RSV", "CLIENTE", "OP", "CORTE", "COLOR", ...]
             const opRaw = (fila[4] || '').toString().trim();
             const corteRaw = (fila[5] || '').toString().trim();
-            
-            // Normalizar quitando ceros a la izquierda
+            const opTelaRaw = (fila[8] || '').toString().trim();
+            const partidaRaw = (fila[9] || '').toString().trim();
             const op = normalizar(opRaw);
             const corte = normalizar(corteRaw);
-            const concatenado = `${op}|${corte}`.toUpperCase();
+            const concatenado = construirClaveDuplicado({
+                op: opRaw,
+                corte: corteRaw,
+                opTela: opTelaRaw,
+                partida: partidaRaw
+            });
 
             if (index < 3) {
                 console.log(`Fila ${index}: OP="${opRaw}"→"${op}", CORTE="${corteRaw}"→"${corte}", Concatenado="${concatenado}"`);
@@ -503,6 +518,8 @@
                 duplicados.push({
                     op: opRaw,
                     corte: corteRaw,
+                    op_tela: opTelaRaw,
+                    partida: partidaRaw,
                     estados,
                     origen: existeEnSheet ? 'sheet' : 'archivo'
                 });
