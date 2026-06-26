@@ -470,6 +470,9 @@
         // ============================================================
 
         function applyFilters() {
+            // Reconstruir chips de Mes (puede ajustar selectedMonth si el mes quedó sin filas)
+            updateMonthChips();
+
             const search = (document.getElementById('search-input').value || '').trim().toUpperCase();
             const statusFilter = document.getElementById('filter-status').value;
             const rutaFilter = document.getElementById('filter-ruta').value;
@@ -577,14 +580,9 @@
             selectedMonth = currentMes;
 
             const years = new Set();
-            const months = new Set();
-            const clients = new Set();
             processedRows.forEach(r => {
                 const y = extractYear(r.fDespacho);
-                const m = extractMonth(r.fDespacho);
                 if (y) years.add(y);
-                if (m) months.add(m);
-                if (r.cliente) clients.add(r.cliente);
             });
 
             // Año chips (sin "Todos")
@@ -599,23 +597,8 @@
                 yearBar.appendChild(btn);
             });
 
-            // Mes chips – orden calendario
-            const monthBar = document.getElementById('chip-month-bar');
-            const btnTodosMes = document.createElement('button');
-            btnTodosMes.className = 'chip-btn';
-            btnTodosMes.dataset.value = '';
-            btnTodosMes.textContent = 'Todos';
-            btnTodosMes.onclick = function() { selectMonth(this, ''); };
-            monthBar.appendChild(btnTodosMes);
-            const sortedMonths = MESES_NAMES.filter(m => months.has(m));
-            sortedMonths.forEach(m => {
-                const btn = document.createElement('button');
-                btn.className = 'chip-btn' + (m === currentMes ? ' active' : '');
-                btn.dataset.value = m;
-                btn.textContent = m;
-                btn.onclick = function() { selectMonth(this, m); };
-                monthBar.appendChild(btn);
-            });
+            // Mes chips – se construyen dinámicamente según las filas visibles
+            updateMonthChips();
 
             updateClienteChips();
         }
@@ -732,6 +715,62 @@
                 selectedFecha = '';
             }
             sel.value = selectedFecha || '';
+        }
+
+        // Reconstruye los chips de Mes mostrando solo meses con filas visibles
+        // (mismos filtros que la tabla, excepto el propio mes y la fecha exacta).
+        function updateMonthChips() {
+            const monthBar = document.getElementById('chip-month-bar');
+            if (!monthBar) return;
+
+            const search = (document.getElementById('search-input').value || '').trim().toUpperCase();
+            const statusFilter = document.getElementById('filter-status').value;
+            const rutaFilter = document.getElementById('filter-ruta').value;
+
+            const months = new Set();
+            processedRows.forEach(r => {
+                if (r.qtyXCortar === 0 && r.qtyXIngresar === 0) return;
+                if (filterSinFecha) {
+                    if (r.fDespacho && r.fDespacho.toString().trim() !== '') return;
+                }
+                if (selectedYear && extractYear(r.fDespacho) !== selectedYear) return;
+                if (search) {
+                    const haystack = [r.cliente, r.estilo, r.oc, r.color, r.rsv, r.rib, r.status, r.planta, r.linea, r.rutaTela, r.estadoRib, r.fDespacho, r.fGirado, r.fCorte].join('|').toUpperCase();
+                    if (!haystack.includes(search)) return;
+                }
+                if (statusFilter) {
+                    if (r.status.toUpperCase().replace(/\s+/g, ' ').trim() !== statusFilter.toUpperCase().replace(/\s+/g, ' ').trim()) return;
+                }
+                if (rutaFilter) {
+                    if (r.rutaTela.toUpperCase() !== rutaFilter) return;
+                }
+                const m = extractMonth(r.fDespacho);
+                if (m) months.add(m);
+            });
+
+            // Si el mes seleccionado ya no tiene filas visibles, volver a "Todos"
+            if (selectedMonth && !months.has(selectedMonth)) {
+                selectedMonth = '';
+            }
+
+            // Quitar solo los botones, conservar la etiqueta "Mes:"
+            monthBar.querySelectorAll('.chip-btn').forEach(b => b.remove());
+
+            const btnTodos = document.createElement('button');
+            btnTodos.className = 'chip-btn' + (!selectedMonth ? ' active' : '');
+            btnTodos.dataset.value = '';
+            btnTodos.textContent = 'Todos';
+            btnTodos.onclick = function() { selectMonth(this, ''); };
+            monthBar.appendChild(btnTodos);
+
+            MESES_NAMES.filter(m => months.has(m)).forEach(m => {
+                const btn = document.createElement('button');
+                btn.className = 'chip-btn' + (m === selectedMonth ? ' active' : '');
+                btn.dataset.value = m;
+                btn.textContent = m;
+                btn.onclick = function() { selectMonth(this, m); };
+                monthBar.appendChild(btn);
+            });
         }
 
         function updateClienteChips() {
